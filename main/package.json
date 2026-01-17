@@ -1,0 +1,20 @@
+{
+  "name": "todo-app",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node main/src/backend/app.js",
+    "init-db": "node main/src/backend/init.js",
+    "test": "npx mocha main/tests/test_todos.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "chai-http": "^5.1.2",
+    "mocha": "^10.2.0",
+    "supertest": "^7.2.2"
+  }
+}

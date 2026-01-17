@@ -1,0 +1,41 @@
+.todo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.title-input,
+.description-input,
+.due-date-input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.title-input:focus,
+.description-input:focus,
+.due-date-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.description-input {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.submit-btn {
+  padding: 12px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background: #45a049;
+}

@@ -1,0 +1,150 @@
+openapi: 3.0.0
+info:
+  title: Todo List API
+  version: 1.0.0
+  description: Todo List 应用的后端 API 规范
+
+servers:
+  - url: http://localhost:3000/api
+    description: 本地开发服务器
+
+paths:
+  /todos:
+    get:
+      summary: 获取所有待办事项
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, completed]
+          description: 按状态筛选
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Todo'
+    
+    post:
+      summary: 创建待办事项
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoInput'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '400':
+          description: 请求参数错误
+
+  /todos/{id}:
+    get:
+      summary: 获取单个待办事项
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '404':
+          description: 待办事项不存在
+
+    put:
+      summary: 更新待办事项
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoInput'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '404':
+          description: 待办事项不存在
+
+    delete:
+      summary: 删除待办事项
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 删除成功
+        '404':
+          description: 待办事项不存在
+
+components:
+  schemas:
+    Todo:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "学习 React"
+        description:
+          type: string
+          example: "学习 React 基础知识和Hooks"
+        dueDate:
+          type: string
+          format: date-time
+          example: "2024-01-20T00:00:00Z"
+        status:
+          type: string
+          enum: [pending, completed]
+          example: "pending"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TodoInput:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          example: "学习 React"
+        description:
+          type: string
+          example: "学习 React 基础知识和Hooks"
+        dueDate:
+          type: string
+          format: date-time
+          example: "2024-01-20T00:00:00Z"

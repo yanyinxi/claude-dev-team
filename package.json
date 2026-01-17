@@ -1,0 +1,29 @@
+{
+  "name": "todo-app",
+  "version": "1.0.0",
+  "description": "Todo List 应用 - Claude Code AI 开发团队演示项目",
+  "main": "main/src/backend/app.js",
+  "scripts": {
+    "start": "node main/src/backend/app.js",
+    "init-db": "node main/src/backend/init.js",
+    "test": "npx mocha main/tests/test_todos.js"
+  },
+  "keywords": [
+    "todo",
+    "react",
+    "nodejs",
+    "express",
+    "sqlite"
+  ],
+  "author": "Claude Code AI",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "mocha": "^10.2.0"
+  }
+}
