@@ -53,22 +53,29 @@ permissionMode: acceptEdits
 ```
 完成后，使用 TodoWrite 记录进度。
 
-### 阶段 3: 前端开发
-使用 Task 工具调用 Frontend Developer Agent:
-```
-请作为 Frontend Developer，根据以下技术设计实现前端代码：
+### 阶段 3-4: 并行开发（前端 + 后端）⭐
 
-[技术设计内容]
-```
-完成后，使用 TodoWrite 记录进度。
+使用 `background_task()` 并行调用两个代理，显著提升开发效率：
 
-### 阶段 4: 后端开发
-使用 Task 工具调用 Backend Developer Agent:
-```
-请作为 Backend Developer，根据以下技术设计实现后端代码：
+```python
+# 并行启动前端和后端开发
+frontend_task = background_task(
+    agent="frontend-developer",
+    prompt="请作为 Frontend Developer，根据以下技术设计实现前端代码：\n\n[技术设计内容]"
+)
 
-[技术设计内容]
+backend_task = background_task(
+    agent="backend-developer", 
+    prompt="请作为 Backend Developer，根据以下技术设计实现后端代码：\n\n[技术设计内容]"
+)
+
+# 等待两者完成（并行执行）
+frontend_result = background_output(task_id=frontend_task)
+backend_result = background_output(task_id=backend_task)
 ```
+
+**优势**：前端和后端同时开发，节省约 40% 总开发时间。
+
 完成后，使用 TodoWrite 记录进度。
 
 ### 阶段 5: 测试
@@ -149,14 +156,16 @@ TodoWrite([{"content": "Tech Lead 设计架构", "id": "2", "status": "in_progre
 
 ## 文件保存规则
 
+> ⚠️ **重要**: 所有路径必须使用 `project_standards.md` 中定义的变量，不要硬编码
+
 所有代码和文档必须保存到 `main/` 目录：
-- PRD文档: `main/docs/prds/[功能名].md`
-- 技术设计: `main/docs/tech_designs/[功能名].md`
-- 前端代码: `main/src/frontend/`
-- 后端代码: `main/src/backend/`
-- 测试代码: `main/tests/`
-- 测试报告: `main/docs/test_reports/`
-- 审查报告: `main/docs/reviews/`
+- PRD文档: `{PRD_DIR}[功能名].md`
+- 技术设计: `{TECH_DESIGN_DIR}[功能名].md`
+- 前端代码: `{FRONTEND_ROOT}`
+- 后端代码: `{BACKEND_ROOT}`
+- 测试代码: `{TESTS_ROOT}`
+- 测试报告: `{TEST_REPORT_DIR}`
+- 审查报告: `{REVIEW_DIR}`
 
 ## 沟通风格
 

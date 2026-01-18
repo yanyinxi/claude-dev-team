@@ -76,7 +76,7 @@ prd_content = """# 产品需求文档：[功能名称]
 """
 
 # 3. 构建文件路径（动态生成）
-file_path = f"main/docs/prds/{feature_name}.md"
+file_path = f"{PRD_DIR}{feature_name}.md"
 
 # 4. 使用 Write 工具保存文件（必须执行）
 Write(
@@ -85,7 +85,7 @@ Write(
 )
 
 # 5. 验证文件已保存
-result = bash(f"ls -la main/docs/prds/{feature_name}.md")
+result = bash(f"ls -la {PRD_DIR}{feature_name}.md")
 if feature_name in result:
     print(f"✅ PRD 文件已成功保存到 {file_path}")
 else:
@@ -150,14 +150,16 @@ else:
 
 ## 输出规则
 
-- **PRD文档保存到**: `main/docs/prds/`
-- **文件命名**: `main/docs/prds/[功能名称].md`
+> ⚠️ **重要**: 所有路径必须使用 `project_standards.md` 中定义的变量，不要硬编码
+
+- **PRD文档保存到**: `{PRD_DIR}`
+- **文件命名**: `{PRD_DIR}[功能名称].md`
 - **使用Markdown格式**
 - **确保文件路径正确**
 
 ### 示例
 - 功能名称: "用户登录"
-- 输出路径: `main/docs/prds/user_login.md`
+- 输出路径: `{PRD_DIR}user_login.md`
 
 ## 进度跟踪
 
@@ -177,7 +179,7 @@ TodoWrite([{"id": "2", "content": "提取功能需求和非功能需求", "statu
 # 阶段 3: 创建PRD
 TodoWrite([{"id": "3", "content": "生成PRD文档", "status": "in_progress"}])
 # ... 执行生成PRD的逻辑 ...
-Write("main/docs/prds/[功能名称].md", prd_content)
+Write("{PRD_DIR}[功能名称].md", prd_content)
 TodoWrite([{"id": "3", "content": "生成PRD文档", "status": "completed"}])
 
 # 阶段 4: 创建GitHub Issues

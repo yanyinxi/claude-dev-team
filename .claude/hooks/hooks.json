@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json.schemastore.org/claude-hook-manifest",
+  "name": "project-standards-hooks",
+  "description": "Project standards 自动验证钩子",
+  "hooks": [
+    {
+      "name": "verify-standards-post-write",
+      "description": "写入 project_standards.md 后自动验证",
+      "when": "PostToolUse",
+      "conditions": [
+        {
+          "type": "tool",
+          "value": "Write"
+        },
+        {
+          "type": "path",
+          "match": "contains",
+          "value": "project_standards.md"
+        }
+      ],
+      "run": {
+        "command": "python3 .claude/scripts/verify_standards.py --verbose",
+        "description": "验证 project_standards.md 完整性"
+      }
+    },
+    {
+      "name": "verify-standards-post-edit",
+      "description": "修改 project_standards.md 后自动验证",
+      "when": "PostToolUse",
+      "conditions": [
+        {
+          "type": "tool",
+          "value": "Edit"
+        },
+        {
+          "type": "path",
+          "match": "contains",
+          "value": "project_standards.md"
+        }
+      ],
+      "run": {
+        "command": "python3 .claude/scripts/verify_standards.py --verbose",
+        "description": "验证 project_standards.md 完整性"
+      }
+    },
+    {
+      "name": "verify-agent-post-write",
+      "description": "修改 agent 文件后验证路径一致性",
+      "when": "PostToolUse",
+      "conditions": [
+        {
+          "type": "tool",
+          "match": "in",
+          "value": ["Write", "Edit"]
+        },
+        {
+          "type": "path",
+          "match": "contains",
+          "value": ".claude/agents/"
+        }
+      ],
+      "run": {
+        "command": "python3 .claude/scripts/verify_standards.py --verbose",
+        "description": "验证 agent 文件路径一致性"
+      }
+    },
+    {
+      "name": "evolution-reminder",
+      "description": "任务结束时提醒进化",
+      "when": "Stop",
+      "run": {
+        "command": "echo '✅ 任务完成！记得调用 Evolver 进行系统进化'",
+        "description": "提醒执行进化流程"
+      }
+    }
+  ]
+}

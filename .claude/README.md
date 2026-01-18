@@ -6,20 +6,21 @@
 
 ## 核心特性
 
-- ✅ 7 个专业 AI 代理角色
+- ✅ 8 个专业 AI 代理角色（包括自进化引擎）
 - ✅ 6 个可复用技能包
 - ✅ Claude Code 原生能力集成
 - ✅ 动态任务分配
-- ✅ 并行任务执行
+- ✅ 自进化系统（从经验中学习）
 - ✅ 质量关卡控制
 
 ## 目录结构
 
 ```
 .claude/
-├── agents/              # 7个代理配置（符合官方文档标准）
+├── agents/              # 8个代理配置（符合官方文档标准）
 │   ├── backend-developer.md
 │   ├── code-reviewer.md
+│   ├── evolver.md              # 新增：自进化引擎
 │   ├── frontend-developer.md
 │   ├── orchestrator.md
 │   ├── product-manager.md
@@ -77,6 +78,7 @@
 
 | 代理 | 功能 | 使用场景 | 触发词 |
 |------|------|---------|--------|
+| **evolver** | 自进化引擎 | 从执行结果中学习并更新系统配置 | 进化、更新、学习、改进 |
 | **orchestrator** | 主协调器 | 协调整个开发流程，管理任务分配 | 协调、管理项目、整个流程 |
 | **product-manager** | 产品经理 | 需求分析、PRD 生成、任务拆分 | 需求分析、PRD、产品需求 |
 | **tech-lead** | 技术负责人 | 架构设计、技术选型、API 设计 | 架构设计、API 设计、技术选型 |
@@ -111,6 +113,8 @@ Claude：
 → backend-developer 实现后端 API
 → test 创建测试
 → code-reviewer 审查代码
+→ orchestrator 做最终决策
+→ evolver 执行系统进化（自动学习并改进）
 ```
 
 ### 示例 2：代码审查
@@ -123,6 +127,7 @@ Claude：
 → 分析变更
 → 识别问题
 → 生成审查报告
+→ evolver 执行系统进化（从审查结果中学习）
 ```
 
 ### 示例 3：需求分析
@@ -185,7 +190,7 @@ permissionMode: acceptEdits  # 或 default
 |------|------|
 | `name` | 代理名称（小写字母和连字符） |
 | `description` | 描述使用场景和触发词 |
-| `allowed-tools` | 允许使用的工具列表 |
+| `tools` | 允许使用的工具列表 |
 | `skills` | 代理可用的技能 |
 | `model` | 使用 `inherit` 继承主对话模型 |
 | `permissionMode` | `acceptEdits` 自动接受编辑，`default` 需要确认 |
@@ -203,13 +208,17 @@ permissionMode: acceptEdits  # 或 default
    ↓
 4. 动态分配任务（frontend + backend）
    ↓
-5. 并行开发（前端 + 后端）
+5. **并行开发**（前端 + 后端，同时使用 background_task()）
    ↓
 6. test 创建测试
    ↓
 7. code-reviewer 审查代码
    ↓
 8. orchestrator 做最终决策
+   ↓
+9. **evolver 执行系统进化** ⭐
+   ↓
+10. 系统学习和改进
 ```
 
 ### 快速修复流程
@@ -224,6 +233,8 @@ permissionMode: acceptEdits  # 或 default
 4. 修复并测试
    ↓
 5. 代码审查
+   ↓
+6. **evolver 执行系统进化** ⭐
 ```
 
 ## 最佳实践
@@ -233,6 +244,96 @@ permissionMode: acceptEdits  # 或 default
 3. **指定代理**：复杂任务可以直接指定代理
 4. **利用协调器**：跨多个领域的任务使用 orchestrator
 5. **审查代码**：重要变更使用 code-reviewer
+6. **信任进化系统**：每次任务后系统会自动学习和改进
+
+## 并行任务执行 ⭐
+
+### 支持并行执行
+
+系统支持使用 `background_task()` 并行执行多个代理任务，显著提升开发效率。
+
+### 并行开发流程
+
+```
+前端开发 + 后端开发（同时进行）
+```
+
+使用 `background_task()` 并行调用两个代理：
+
+```python
+# 并行启动前端和后端开发
+frontend_task = background_task(
+    agent="frontend-developer",
+    prompt="请实现前端代码..."
+)
+
+backend_task = background_task(
+    agent="backend-developer", 
+    prompt="请实现后端代码..."
+)
+
+# 等待两者完成（并行执行）
+frontend_result = background_output(task_id=frontend_task)
+backend_result = background_output(task_id=backend_task)
+```
+
+**优势**：
+- 前端和后端同时开发
+- 节省约 40% 总开发时间
+- 适合独立模块的并行开发
+
+### 使用场景
+
+- **前后端分离**：前端 UI 和后端 API 同时开发
+- **独立功能模块**：多个独立功能可以并行
+- **测试和开发**：开发进行中时可以并行编写测试
+
+## 自进化系统
+
+### 工作原理
+
+每次任务执行完成后，系统会自动调用 Evolver 代理进行学习和优化：
+
+```
+用户需求
+    ↓
+Agent 执行任务
+    ↓
+Agent 调用 Task("请作为 Evolver...")
+    ↓
+Evolver 分析任务结果
+    ↓
+Evolver 使用 Write/Edit 更新配置文件
+    ↓
+下次任务使用更新后的配置
+```
+
+### 进化内容
+
+Evolver 会自动更新：
+- **最佳实践**：从成功经验中提取可复用的方法
+- **常见问题**：从失败经验中总结教训
+- **工作流程建议**：根据实际执行情况优化流程
+
+### 查看进化记录
+
+每个 Agent 文件末尾都包含进化记录：
+
+```markdown
+## 📈 进化记录（自动生成）
+
+### 基于 [任务类型] 的学习
+
+**执行时间**: 2026-01-18 17:10
+
+**新增最佳实践**:
+- **洞察标题**: 具体描述
+  - 适用场景：...
+  - 注意事项：...
+
+**关键洞察**:
+- ...
+```
 
 ## 常见问题
 
@@ -255,6 +356,18 @@ permissionMode: acceptEdits  # 或 default
 ### Q: 如何验证代理是否生效？
 
 运行 `/agents` 检查代理列表，或直接描述需求观察响应。
+
+### Q: 进化系统如何工作？
+
+每次任务完成后，Agent 会自动调用 Evolver 代理，Evolver 会：
+1. 分析任务执行结果
+2. 提取最佳实践和教训
+3. 更新 Agent 配置文件
+4. 系统持续学习和改进
+
+### Q: 可以查看进化历史吗？
+
+是的，每个 Agent 文件末尾都包含进化记录，记录了所有学习到的经验。
 
 ## 相关文档
 

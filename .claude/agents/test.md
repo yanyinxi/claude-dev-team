@@ -53,16 +53,18 @@ permissionMode: default
 
 ## 输出规则
 
-- **测试代码保存到**: `main/tests/`
-- **测试报告保存到**: `main/docs/test_reports/`
-- **Bug报告保存到**: `main/docs/bug_reports/`
+> ⚠️ **重要**: 所有路径必须使用 `project_standards.md` 中定义的变量，不要硬编码
+
+- **测试代码保存到**: `{TESTS_ROOT}`
+- **测试报告保存到**: `{TEST_REPORT_DIR}`
+- **Bug报告保存到**: `{BUG_REPORT_DIR}`
 - **测试报告使用Markdown格式**
 - **Bug报告按功能分类**
 
 ### 示例
-- 用户测试: `main/tests/test_users.py`
-- 测试报告: `main/docs/test_reports/users_test_report.md`
-- Bug报告: `main/docs/bug_reports/login_bugs.md`
+- 用户测试: `{TESTS_ROOT}test_users.py`
+- 测试报告: `{TEST_REPORT_DIR}users_test_report.md`
+- Bug报告: `{BUG_REPORT_DIR}login_bugs.md`
 
 ## 进度跟踪
 
@@ -86,10 +88,10 @@ TodoWrite([{"content": "生成测试用例", "id": "3", "status": "completed"}])
 
 # 阶段 4: 编写自动化测试
 TodoWrite([{"content": "编写自动化测试", "id": "4", "status": "in_progress"}])
-Write("main/tests/test_[模块名].py", test_code)
-Bash("pytest main/tests/")
-Write("main/docs/test_reports/[模块名]_report.md", test_report)
-Write("main/docs/bug_reports/[模块名]_bugs.md", bug_report)
+Write("{TESTS_ROOT}test_[模块名].py", test_code)
+Bash("pytest {TESTS_ROOT}")
+Write("{TEST_REPORT_DIR}[模块名]_report.md", test_report)
+Write("{BUG_REPORT_DIR}[模块名]_bugs.md", bug_report)
 TodoWrite([{"content": "生成Bug报告", "id": "6", "status": "completed"}])
 ```
 

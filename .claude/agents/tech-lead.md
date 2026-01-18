@@ -33,8 +33,11 @@ permissionMode: acceptEdits
 
 ### 阶段 2: 架构设计
 1. 使用 `skill(name="architecture-design")` 设计架构
-2. 生成技术设计文档
-3. 定义技术栈
+2. 参考 `.claude/project_standards.md` 获取标准技术栈
+3. 生成技术设计文档
+4. 定义技术栈
+
+> 📖 详细技术选型参考：→ `.claude/project_standards.md`
 
 ### 阶段 3: API 设计
 1. 使用 `skill(name="api-design")` 设计 API
@@ -57,17 +60,19 @@ permissionMode: acceptEdits
 
 ## 输出规则
 
-- **技术设计文档保存到**: `main/docs/tech_designs/`
-- **API规范保存到**: `main/docs/api/`
-- **任务分配方案保存到**: `main/docs/task_distribution/`
+> ⚠️ **重要**: 所有路径必须使用 `project_standards.md` 中定义的变量，不要硬编码
+
+- **技术设计文档保存到**: `{TECH_DESIGN_DIR}`
+- **API规范保存到**: `{API_DIR}`
+- **任务分配方案保存到**: `{TASK_DIST_DIR}`
 - **文件命名**:
-  - 技术设计: `main/docs/tech_designs/[功能名称].md`
-  - API规范: `main/docs/api/[功能名称].yaml`
+  - 技术设计: `{TECH_DESIGN_DIR}[功能名称].md`
+  - API规范: `{API_DIR}[功能名称].yaml`
 
 ### 示例
 - 功能名称: "用户认证系统"
-- 技术设计路径: `main/docs/tech_designs/user_authentication.md`
-- API规范路径: `main/docs/api/user_authentication.yaml`
+- 技术设计路径: `{TECH_DESIGN_DIR}user_authentication.md`
+- API规范路径: `{API_DIR}user_authentication.yaml`
 
 ## 进度跟踪
 
@@ -81,9 +86,9 @@ TodoWrite([{"content": "分析PRD文档", "id": "1", "status": "completed"}])
 
 # 阶段 2: 架构设计
 TodoWrite([{"content": "设计系统架构", "id": "2", "status": "in_progress"}])
-Write("main/docs/tech_designs/[功能名称].md", tech_design_content)
-Write("main/docs/api/[功能名称].yaml", api_spec_content)
-Write("main/docs/task_distribution/[功能名称].md", task_distribution_content)
+Write("{TECH_DESIGN_DIR}[功能名称].md", tech_design_content)
+Write("{API_DIR}[功能名称].yaml", api_spec_content)
+Write("{TASK_DIST_DIR}[功能名称].md", task_distribution_content)
 TodoWrite([{"content": "分配开发任务", "id": "4", "status": "completed"}])
 
 # 阶段 5: 最终决策

@@ -19,6 +19,10 @@ permissionMode: acceptEdits
 
 # 前端开发代理
 
+## 技术标准
+
+> 📖 参考 → `.claude/project_standards.md` 获取前端技术栈规范
+
 ## 工作流程
 
 ### 第一步：理解需求
@@ -48,18 +52,20 @@ permissionMode: acceptEdits
 
 ## 输出规则
 
-- **前端代码保存到**: `main/src/frontend/`
-- **组件保存到**: `main/src/frontend/components/`
-- **页面保存到**: `main/src/frontend/pages/`
-- **样式保存到**: `main/src/frontend/styles/`
-- **测试保存到**: `main/tests/frontend/`
+> ⚠️ **重要**: 所有路径必须使用 `project_standards.md` 中定义的变量，不要硬编码
+
+- **前端代码保存到**: `{FRONTEND_ROOT}`
+- **组件保存到**: `{FRONTEND_ROOT}/components/`
+- **页面保存到**: `{FRONTEND_ROOT}/pages/`
+- **样式保存到**: `{FRONTEND_ROOT}/styles/`
+- **测试保存到**: `{FRONTEND_TESTS}`
 - **使用清晰的文件结构**
 - **保持代码规范和注释**
 
 ### 示例
-- 登录组件: `main/src/frontend/components/Login.tsx`
-- 登录页面: `main/src/frontend/pages/Login.tsx`
-- 测试文件: `main/tests/frontend/test_login.ts`
+- 登录组件: `{FRONTEND_ROOT}/components/Login.tsx`
+- 登录页面: `{FRONTEND_ROOT}/pages/Login.tsx`
+- 测试文件: `{FRONTEND_TESTS}test_login.ts`
 
 ## 进度跟踪
 
@@ -78,13 +84,13 @@ TodoWrite([{"content": "设计前端组件", "id": "2", "status": "completed"}])
 
 # 阶段 3: 实现代码
 TodoWrite([{"content": "实现前端代码", "id": "3", "status": "in_progress"}])
-Write("main/src/frontend/components/[组件名].tsx", component_code)
-Write("main/src/frontend/pages/[页面名].tsx", page_code)
+Write("{FRONTEND_ROOT}/components/[组件名].tsx", component_code)
+Write("{FRONTEND_ROOT}/pages/[页面名].tsx", page_code)
 TodoWrite([{"content": "实现前端代码", "id": "3", "status": "completed"}])
 
 # 阶段 4: 编写测试
 TodoWrite([{"content": "编写前端测试", "id": "4", "status": "in_progress"}])
-Write("main/tests/frontend/test_[组件名].ts", test_code)
+Write("{FRONTEND_TESTS}test_[组件名].ts", test_code)
 TodoWrite([{"content": "编写前端测试", "id": "4", "status": "completed"}])
 ```
 

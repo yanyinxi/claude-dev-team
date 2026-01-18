@@ -111,3 +111,33 @@ node_modules/
 *.db
 *.db-shm
 *.db-wal
+
+# ============================================
+# Claude Code 配置 (敏感文件)
+# ============================================
+# 个人配置文件 - 不提交到git
+.claude/settings.local.json
+CLAUDE.local.md
+
+# 临时会话文件
+.claude/.sessions/
+.claude/.cache/
+
+# MCP服务器本地配置
+.claude/.mcp.local.json
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# ============================================
+# CI/CD 和脚本输出
+# ============================================
+# 测试输出
+test_output.json
+*.test.log
+
+# 脚本生成的临时文件
+scripts/tmp/
+scripts/.cache/

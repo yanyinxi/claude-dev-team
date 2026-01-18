@@ -1,16 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Skill(*)",
-      "Bash(*)",
-      "Read(*)",
-      "Write(*)",
-      "Edit(*)",
-      "Grep(*)",
-      "Glob(*)",
-      "lsp_*",
-      "TodoWrite",
-      "todowrite"
+      "Skill",
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Grep",
+      "Glob",
+      "Lsp_*",
+      "TodoWrite"
     ]
   }
 }

@@ -1,14 +1,15 @@
-# Claude Dev Team - AI 开发团队协作系统
+# Claude Dev Team - AI 开发团队协作系统 ⭐
 
-基于 Claude Code 的 AI 开发团队系统，模拟真实开发团队的角色分工和协作。
+基于 Claude Code 原生能力构建的自进化AI开发团队系统，模拟真实软件开发团队的角色分工和协作流程。
 
 ## 🎯 核心功能
 
-- 7 个 AI 代理角色（PM、架构师、前后端开发、QA、工程师、协调器）
-- 动态开发者分配（LLM 智能决定人数）
-- 并行任务执行
-- 自动化质量检查
-- 完整的协作记录
+- **8 个专业 AI 代理** (符合 Claude Code 官方标准)
+- **6 个可复用技能包** (开箱即用)
+- **自进化引擎** (从经验中持续学习改进)
+- **自动化质量门禁** (hooks 自动代码检查)
+- **企业级配置** (团队共享安全策略)
+- **CI/CD 验证** (自动化健康检查和进化追踪)
 
 ## 🚀 快速开始
 
@@ -17,31 +18,201 @@
 git clone <url>
 cd claude-dev-team
 
-# 查看示例
-cd examples
+# 直接开始使用，无需额外配置
+claude
 ```
 
 ## 📁 项目结构
 
 ```
 claude-dev-team/
-├── examples/          # 完整示例
-│   ├── simple_crud/   # 基础 CRUD
-│   ├── bug_fix/       # 调试示例
-│   ├── fullstack_app/ # 电商系统
-│   └── todo_app/      # 全栈应用 ⭐ 推荐
-├── main/              # 原始项目
-├── .claude/           # 代理和工作流配置
-└── docs/              # 文档
+├── CLAUDE.md                    # ⭐ 项目规范 (单一真相源)
+├── .claude/
+│   ├── settings.json            # 团队共享配置 (提交到git)
+│   ├── settings.local.json      # 个人配置 (git忽略)
+│   ├── hooks/hooks.json         # 自动化质量门禁
+│   ├── agents/                  # 8个专业代理
+│   ├── skills/                  # 6个可复用技能
+│   └── README.md                # Agent系统说明
+├── .github/workflows/
+│   └── validate-evolution.yml   # CI/CD 自动化验证
+├── scripts/
+│   ├── evolution-metrics.sh     # 进化指标仪表盘
+│   └── agent-healthcheck.sh     # Agent健康检查
+├── examples/                    # 完整示例
+├── main/                        # 原始项目
+└── docs/                        # 文档
 ```
+
+## ✨ 新增特性 (v2.0)
+
+### 1. 企业级配置 (`settings.json`)
+- ✅ 团队共享权限策略
+- ✅ 安全防护 (自动拒绝 curl/wget)
+- ✅ Git 归属标注 (AI 生成自动标记)
+- ✅ 标准化的 allow/ask/deny 规则
+
+### 2. 自动化质量门禁 (Hooks)
+- ✅ 自动代码格式化 (PostToolUse)
+- ✅ 强制进化提醒 (Stop 事件)
+- ✅ 会话启动欢迎提示
+
+### 3. 根目录 CLAUDE.md
+- ✅ 技术栈约束 (前端/后端规范)
+- ✅ 构建命令标准化
+- ✅ Agent 使用流程图
+- ✅ 代码规范示例
+- ✅ 禁止行为清单
+
+### 4. CI/CD 验证工作流
+- ✅ Agent 配置格式验证
+- ✅ 进化记录检查
+- ✅ JSON 配置文件验证
+- ✅ 自动化健康检查
+
+### 5. 运维工具
+- ✅ `scripts/evolution-metrics.sh` - 生成进化指标报告
+- ✅ `scripts/agent-healthcheck.sh` - 检查 Agent 健康状态
+
+## 📖 使用方法
+
+### 基础使用 (与之前相同)
+
+```bash
+# 直接描述需求，Claude 自动选择合适代理
+实现用户登录功能
+
+# 或指定特定代理
+使用 backend-developer 代理实现用户认证 API
+使用 code-reviewer 代理审查代码
+```
+
+### 新增工具使用
+
+```bash
+# 检查系统健康
+./scripts/agent-healthcheck.sh
+
+# 生成进化指标报告
+./scripts/evolution-metrics.sh
+
+# 运行 CI/CD 验证
+# Push 到 GitHub 时自动触发
+```
+
+### 团队协作
+
+```bash
+# 团队成员克隆后直接使用
+git clone <your-repo>
+cd your-project
+claude
+
+# 团队共享的配置会自动加载
+# - .claude/settings.json (权限规则)
+# - .claude/hooks/hooks.json (质量门禁)
+# - CLAUDE.md (项目规范)
+```
+
+## 🧬 自进化系统
+
+### 工作原理
+
+```
+任务执行完成
+    ↓
+系统自动检查是否需要进化
+    ↓
+Evolver 分析任务结果
+    ↓
+提取最佳实践 → 更新 agent 配置
+    ↓
+下次任务自动应用新学到的经验
+```
+
+### 进化记录
+
+每个 agent 文件末尾包含"📈 进化记录"章节：
+
+```markdown
+## 📈 进化记录（自动生成）
+
+### 基于 [任务类型] 的学习
+
+**执行时间**: 2026-01-18 17:30
+
+**新增最佳实践**:
+- **洞察标题**: 具体描述
+  - 适用场景：...
+  - 注意事项：...
+
+**关键洞察**:
+- ...
+```
+
+### 追踪进化指标
+
+```bash
+# 生成详细报告
+./scripts/evolution-metrics.sh
+
+# 输出示例:
+# # 🧬 Evolution Metrics Report
+# ## Agent Evolution Status
+# - **orchestrator**: 5 evolutions (Last: 2026-01-18)
+# - **backend-developer**: 3 evolutions (Last: 2026-01-17)
+# ...
+```
+
+## 🔧 配置说明
+
+### 权限配置 (.claude/settings.json)
+
+```json
+{
+  "permissions": {
+    "allow": ["Bash(npm run *)", "Read(*)", ...],
+    "ask": ["Bash(git commit:*)", "Bash(git push:*)", ...],
+    "deny": ["Bash(curl:*)", "Bash(wget:*)", ...],
+    "defaultMode": "acceptEdits"
+  }
+}
+```
+
+### Hooks 配置 (.claude/hooks/hooks.json)
+
+- **PostToolUse**: 每次编辑后自动格式化代码
+- **Stop**: 任务结束时检查是否需要进化
+- **SessionStart**: 显示欢迎信息
 
 ## 📚 学习路径
 
 1. **入门** → `examples/simple_crud/` （30 分钟）
 2. **进阶** → `examples/todo_app/` （1-2 小时）
 3. **高级** → `examples/fullstack_app/` （1-2 周）
+4. **专家** → 学习自进化原理，参与系统改进
 
-## 🔗 更多信息
+## 🤝 贡献指南
 
+1. Fork 本项目
+2. 创建特性分支 (`git checkout -b feature/amazing-feature`)
+3. 提交更改 (`git commit -m 'Add amazing feature'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 创建 Pull Request
+
+## 📄 许可证
+
+MIT License - 详见 [LICENSE](LICENSE) 文件
+
+## 🔗 资源链接
+
+- [Claude Code 官方文档](https://code.claude.com/docs/zh-CN)
 - [查看所有示例](examples/README.md)
-- 源项目在 `main/` 目录
+- [Agent 系统说明](.claude/README.md)
+- [项目规范](CLAUDE.md)
+
+---
+
+**维护者**: Claude Dev Team  
+**版本**: 2.0.0  
+**最后更新**: 2026-01-18

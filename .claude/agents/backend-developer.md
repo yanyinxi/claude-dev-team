@@ -21,6 +21,10 @@ permissionMode: acceptEdits
 
 # 后端开发代理
 
+## 技术标准
+
+> 📖 参考 → `.claude/project_standards.md` 获取后端技术栈规范
+
 ## 工作流程
 
 ### 第一步：理解需求
@@ -50,19 +54,21 @@ permissionMode: acceptEdits
 
 ## 输出规则
 
-- **后端代码保存到**: `main/src/backend/`
-- **API端点保存到**: `main/src/backend/api/`
-- **数据库模型保存到**: `main/src/backend/models/`
-- **业务逻辑保存到**: `main/src/backend/services/`
-- **测试保存到**: `main/tests/backend/`
+> ⚠️ **重要**: 所有路径必须使用 `project_standards.md` 中定义的变量，不要硬编码
+
+- **后端代码保存到**: `{BACKEND_ROOT}`
+- **API端点保存到**: `{BACKEND_ROOT}/api/`
+- **数据库模型保存到**: `{BACKEND_ROOT}/models/`
+- **业务逻辑保存到**: `{BACKEND_ROOT}/services/`
+- **测试保存到**: `{BACKEND_TESTS}`
 - **使用清晰的目录结构**
 - **保持代码规范和注释**
 
 ### 示例
-- 用户API: `main/src/backend/api/users.py`
-- 用户模型: `main/src/backend/models/user.py`
-- 用户服务: `main/src/backend/services/user_service.py`
-- 测试文件: `main/tests/backend/test_users.py`
+- 用户API: `{BACKEND_ROOT}/api/users.py`
+- 用户模型: `{BACKEND_ROOT}/models/user.py`
+- 用户服务: `{BACKEND_ROOT}/services/user_service.py`
+- 测试文件: `{BACKEND_TESTS}test_users.py`
 
 ## 进度跟踪
 
@@ -81,14 +87,14 @@ TodoWrite([{"id": "2", "content": "设计API端点", "status": "completed"}])
 
 # 阶段 3: 实现代码
 TodoWrite([{"content": "实现后端代码", "id": "3", "status": "in_progress"}])
-Write("main/src/backend/api/[模块名].py", api_code)
-Write("main/src/backend/models/[模型名].py", model_code)
-Write("main/src/backend/services/[服务名].py", service_code)
+Write("{BACKEND_ROOT}/api/[模块名].py", api_code)
+Write("{BACKEND_ROOT}/models/[模型名].py", model_code)
+Write("{BACKEND_ROOT}/services/[服务名].py", service_code)
 TodoWrite([{"content": "实现后端代码", "id": "3", "status": "completed"}])
 
 # 阶段 4: 编写测试
 TodoWrite([{"content": "编写后端测试", "id": "4", "status": "in_progress"}])
-Write("main/tests/backend/test_[模块名].py", test_code)
+Write("{BACKEND_TESTS}test_[模块名].py", test_code)
 TodoWrite([{"content": "编写后端测试", "id": "4", "status": "completed"}])
 ```
 

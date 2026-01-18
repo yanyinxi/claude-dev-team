@@ -53,14 +53,16 @@ permissionMode: default
 
 ## 输出规则
 
-- **审查报告保存到**: `main/docs/reviews/`
-- **文件命名**: `main/docs/reviews/[PR或功能名称]_review.md`
+> ⚠️ **重要**: 所有路径必须使用 `project_standards.md` 中定义的变量，不要硬编码
+
+- **审查报告保存到**: `{REVIEW_DIR}`
+- **文件命名**: `{REVIEW_DIR}[PR或功能名称]_review.md`
 - **使用Markdown格式**
 - **包含严重程度分类**
 
 ### 示例
-- PR审查: `main/docs/reviews/pr_123_review.md`
-- 功能审查: `main/docs/reviews/user_authentication_review.md`
+- PR审查: `{REVIEW_DIR}pr_123_review.md`
+- 功能审查: `{REVIEW_DIR}user_authentication_review.md`
 
 ## 进度跟踪
 
@@ -84,7 +86,7 @@ TodoWrite([{"content": "安全漏洞扫描", "id": "3", "status": "completed"}])
 
 # 阶段 4: 生成报告
 TodoWrite([{"content": "生成审查报告", "id": "4", "status": "in_progress"}])
-Write("main/docs/reviews/[功能名]_review.md", review_report)
+Write("{REVIEW_DIR}[功能名]_review.md", review_report)
 TodoWrite([{"content": "生成审查报告", "id": "4", "status": "completed"}])
 ```
 
