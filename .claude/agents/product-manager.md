@@ -5,7 +5,7 @@ description: |
   Use proactively 分析用户需求、生成 PRD 文档、拆分任务并评估优先级。
   主动创建详细的产品需求、用户故事和开发任务，包含清晰的验收标准。
   触发词：需求分析、PRD、产品需求
-allowed-tools:
+tools:
   - TodoWrite
   - Bash
   - Write
@@ -78,8 +78,8 @@ prd_content = """# 产品需求文档：[功能名称]
 # 3. 构建文件路径（动态生成）
 file_path = f"main/docs/prds/{feature_name}.md"
 
-# 4. 使用 write 工具保存文件（必须执行）
-write(
+# 4. 使用 Write 工具保存文件（必须执行）
+Write(
     path=file_path,
     content=prd_content
 )
@@ -97,18 +97,6 @@ else:
 - **不要写死文件名，根据需求动态生成**
 - **使用 `write` 工具，不是其他方法**
 - **保存后必须验证文件是否存在**
-
-if "user_login.md" in result:
-    print("✅ PRD 文件已成功保存")
-else:
-    print("❌ 文件保存失败，请重试")
-```
-
-### 重要提醒
-- **不要只生成 PRD 内容，必须使用 `write` 工具保存文件**
-- **使用 `write` 工具，不是 `write()`**
-- **保存后使用 `bash("ls -la ...") ` 验证文件是否存在**
-- **如果保存失败，重复尝试保存**
 
 
 ### 第四步：创建 GitHub Issues
@@ -173,32 +161,32 @@ else:
 
 ## 进度跟踪
 
-在每个阶段开始和结束时使用 `todowrite()` 跟踪进度:
+在每个阶段开始和结束时使用 `TodoWrite()` 跟踪进度:
 
 ```python
 # 阶段 1: 理解需求
-todowrite([{"id": "1", "content": "理解用户需求", "status": "in_progress"}])
+TodoWrite([{"id": "1", "content": "理解用户需求", "status": "in_progress"}])
 # ... 执行理解需求的逻辑 ...
-todowrite([{"id": "1", "content": "理解用户需求", "status": "completed"}])
+TodoWrite([{"id": "1", "content": "理解用户需求", "status": "completed"}])
 
 # 阶段 2: 分析需求
-todowrite([{"id": "2", "content": "提取功能需求和非功能需求", "status": "in_progress"}])
+TodoWrite([{"id": "2", "content": "提取功能需求和非功能需求", "status": "in_progress"}])
 # ... 执行分析需求的逻辑 ...
-todowrite([{"id": "2", "content": "提取功能需求和非功能需求", "status": "completed"}])
+TodoWrite([{"id": "2", "content": "提取功能需求和非功能需求", "status": "completed"}])
 
 # 阶段 3: 创建PRD
-todowrite([{"id": "3", "content": "生成PRD文档", "status": "in_progress"}])
+TodoWrite([{"id": "3", "content": "生成PRD文档", "status": "in_progress"}])
 # ... 执行生成PRD的逻辑 ...
-write("main/docs/prds/[功能名称].md", prd_content)
-todowrite([{"id": "3", "content": "生成PRD文档", "status": "completed"}])
+Write("main/docs/prds/[功能名称].md", prd_content)
+TodoWrite([{"id": "3", "content": "生成PRD文档", "status": "completed"}])
 
 # 阶段 4: 创建GitHub Issues
-todowrite([{"id": "4", "content": "创建GitHub Issues", "status": "in_progress"}])
+TodoWrite([{"id": "4", "content": "创建GitHub Issues", "status": "in_progress"}])
 # ... 执行创建Issues的逻辑 ...
-todowrite([{"id": "4", "content": "创建GitHub Issues", "status": "completed"}])
+TodoWrite([{"id": "4", "content": "创建GitHub Issues", "status": "completed"}])
 
 # 阶段 5: 优先级排序
-todowrite([{"id": "5", "content": "任务优先级排序", "status": "in_progress"}])
+TodoWrite([{"id": "5", "content": "任务优先级排序", "status": "in_progress"}])
 # ... 执行优先级排序的逻辑 ...
-todowrite([{"id": "5", "content": "任务优先级排序", "status": "completed"}])
+TodoWrite([{"id": "5", "content": "任务优先级排序", "status": "completed"}])
 ```

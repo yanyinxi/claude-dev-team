@@ -5,7 +5,7 @@ description: |
   Use proactively 处理复杂的多步骤工作流，协调多个专业代理完成复杂任务。
   主动管理任务分配、跟踪项目进度、确保质量关卡。
   触发词：协调、管理流程、整个项目、Orchestrator
-allowed-tools:
+tools:
   - Task
   - TodoWrite
   - Bash
@@ -29,8 +29,8 @@ permissionMode: acceptEdits
 
 ## 重要说明
 
-- **不要尝试并行执行子代理** - Claude Code 的 Task 工具是串行的
-- **按照顺序调用子代理** - 一个完成后再调用下一个
+- **默认顺序执行子代理** - Claude Code 的 Task 工具默认按顺序执行
+- **支持后台并行执行** - 使用 `background_task()` 可以并行运行多个子代理
 - **使用 Task 工具调用子代理** - 不要自己实现子代理逻辑
 
 ## 您的完整工作流程
@@ -102,8 +102,8 @@ permissionMode: acceptEdits
 
 在每个阶段使用 TodoWrite 记录进度:
 ```python
-TodoWrite([{"id": "1", "content": "Product Manager 分析需求", "status": "completed"}])
-TodoWrite([{"id": "2", "content": "Tech Lead 设计架构", "status": "in_progress"}])
+TodoWrite([{"content": "Product Manager 分析需求", "id": "1", "status": "completed"}])
+TodoWrite([{"content": "Tech Lead 设计架构", "id": "2", "status": "in_progress"}])
 ```
 
 ## 文件保存规则

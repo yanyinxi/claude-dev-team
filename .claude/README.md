@@ -164,7 +164,7 @@ description: |
   - 场景1
   - 场景2
   触发词：关键词1、关键词2
-allowed-tools:
+tools:
   - TodoWrite
   - Bash
   - Read

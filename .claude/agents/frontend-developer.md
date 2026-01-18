@@ -5,7 +5,7 @@ description: |
   Use proactively 实现 React/Vue/Next.js 组件、编写前端测试、优化前端性能。
   主动创建响应式、可访问、高性能的用户界面，包含完善的状态管理。
   触发词：前端、前端开发、UI、组件
-allowed-tools:
+tools:
   - TodoWrite
   - Bash
   - Write
@@ -63,27 +63,27 @@ permissionMode: acceptEdits
 
 ## 进度跟踪
 
-在每个阶段开始和结束时使用 `todowrite()` 跟踪进度:
+在每个阶段开始和结束时使用 `TodoWrite()` 跟踪进度:
 
 ```python
 # 阶段 1: 理解需求
-todowrite([{"id": "1", "content": "理解前端需求", "status": "in_progress"}])
+TodoWrite([{"content": "理解前端需求", "id": "1", "status": "in_progress"}])
 # ... 执行理解逻辑 ...
-todowrite([{"id": "1", "content": "理解前端需求", "status": "completed"}])
+TodoWrite([{"content": "理解前端需求", "id": "1", "status": "completed"}])
 
 # 阶段 2: 组件设计
-todowrite([{"id": "2", "content": "设计前端组件", "status": "in_progress"}])
+TodoWrite([{"content": "设计前端组件", "id": "2", "status": "in_progress"}])
 # ... 执行组件设计逻辑 ...
-todowrite([{"id": "2", "content": "设计前端组件", "status": "completed"}])
+TodoWrite([{"content": "设计前端组件", "id": "2", "status": "completed"}])
 
 # 阶段 3: 实现代码
-todowrite([{"id": "3", "content": "实现前端代码", "status": "in_progress"}])
-write_file("main/src/frontend/components/[组件名].tsx", component_code)
-write_file("main/src/frontend/pages/[页面名].tsx", page_code)
-todowrite([{"id": "3", "content": "实现前端代码", "status": "completed"}])
+TodoWrite([{"content": "实现前端代码", "id": "3", "status": "in_progress"}])
+Write("main/src/frontend/components/[组件名].tsx", component_code)
+Write("main/src/frontend/pages/[页面名].tsx", page_code)
+TodoWrite([{"content": "实现前端代码", "id": "3", "status": "completed"}])
 
 # 阶段 4: 编写测试
-todowrite([{"id": "4", "content": "编写前端测试", "status": "in_progress"}])
-write_file("main/tests/frontend/test_[组件名].ts", test_code)
-todowrite([{"id": "4", "content": "编写前端测试", "status": "completed"}])
+TodoWrite([{"content": "编写前端测试", "id": "4", "status": "in_progress"}])
+Write("main/tests/frontend/test_[组件名].ts", test_code)
+TodoWrite([{"content": "编写前端测试", "id": "4", "status": "completed"}])
 ```

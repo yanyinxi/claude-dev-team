@@ -1,9 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "Skill(code_quality)",
-      "Bash(tree:*)",
-      "Bash(find:*)"
+      "Skill(*)",
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Grep(*)",
+      "Glob(*)",
+      "lsp_*",
+      "TodoWrite",
+      "todowrite"
     ]
   }
 }

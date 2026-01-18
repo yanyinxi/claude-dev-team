@@ -5,7 +5,7 @@ description: |
   Use proactively 实现 RESTful API 端点、设计数据库 Schema、编写后端测试。
   主动处理数据库优化、缓存策略和并发处理。
   触发词：后端、API、数据库、后端开发
-allowed-tools:
+tools:
   - TodoWrite
   - Bash
   - Write
@@ -66,28 +66,28 @@ permissionMode: acceptEdits
 
 ## 进度跟踪
 
-在每个阶段开始和结束时使用 `todowrite()` 跟踪进度:
+在每个阶段开始和结束时使用 `TodoWrite()` 跟踪进度:
 
 ```python
 # 阶段 1: 理解需求
-todowrite([{"id": "1", "content": "理解后端需求", "status": "in_progress"}])
+TodoWrite([{"id": "1", "content": "理解后端需求", "status": "in_progress"}])
 # ... 执行理解逻辑 ...
-todowrite([{"id": "1", "content": "理解后端需求", "status": "completed"}])
+TodoWrite([{"id": "1", "content": "理解后端需求", "status": "completed"}])
 
 # 阶段 2: 设计API
-todowrite([{"id": "2", "content": "设计API端点", "status": "in_progress"}])
+TodoWrite([{"id": "2", "content": "设计API端点", "status": "in_progress"}])
 # ... 执行API设计逻辑 ...
-todowrite([{"id": "2", "content": "设计API端点", "status": "completed"}])
+TodoWrite([{"id": "2", "content": "设计API端点", "status": "completed"}])
 
 # 阶段 3: 实现代码
-todowrite([{"id": "3", "content": "实现后端代码", "status": "in_progress"}])
-write_file("main/src/backend/api/[模块名].py", api_code)
-write_file("main/src/backend/models/[模型名].py", model_code)
-write_file("main/src/backend/services/[服务名].py", service_code)
-todowrite([{"id": "3", "content": "实现后端代码", "status": "completed"}])
+TodoWrite([{"content": "实现后端代码", "id": "3", "status": "in_progress"}])
+Write("main/src/backend/api/[模块名].py", api_code)
+Write("main/src/backend/models/[模型名].py", model_code)
+Write("main/src/backend/services/[服务名].py", service_code)
+TodoWrite([{"content": "实现后端代码", "id": "3", "status": "completed"}])
 
 # 阶段 4: 编写测试
-todowrite([{"id": "4", "content": "编写后端测试", "status": "in_progress"}])
-write_file("main/tests/backend/test_[模块名].py", test_code)
-todowrite([{"id": "4", "content": "编写后端测试", "status": "completed"}])
+TodoWrite([{"content": "编写后端测试", "id": "4", "status": "in_progress"}])
+Write("main/tests/backend/test_[模块名].py", test_code)
+TodoWrite([{"content": "编写后端测试", "id": "4", "status": "completed"}])
 ```

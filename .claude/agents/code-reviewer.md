@@ -5,7 +5,7 @@ description: |
   Use proactively 在编写或修改代码后立即进行审查，识别潜在问题并提供改进建议。
   主动扫描 Bug、安全漏洞、性能问题和代码质量问题。
   触发词：代码审查、审查代码、PR 审查
-allowed-tools:
+tools:
   - TodoWrite
   - Bash
   - Read
@@ -64,26 +64,26 @@ permissionMode: default
 
 ## 进度跟踪
 
-在每个阶段开始和结束时使用 `todowrite()` 跟踪进度:
+在每个阶段开始和结束时使用 `TodoWrite()` 跟踪进度:
 
 ```python
 # 阶段 1: 快速扫描
-todowrite([{"id": "1", "content": "快速扫描代码", "status": "in_progress"}])
+TodoWrite([{"content": "快速扫描代码", "id": "1", "status": "in_progress"}])
 # ... 执行快速扫描逻辑 ...
-todowrite([{"id": "1", "content": "快速扫描代码", "status": "completed"}])
+TodoWrite([{"content": "快速扫描代码", "id": "1", "status": "completed"}])
 
 # 阶段 2: 深度检查
-todowrite([{"id": "2", "content": "深度检查代码", "status": "in_progress"}])
+TodoWrite([{"content": "深度检查代码", "id": "2", "status": "in_progress"}])
 # ... 执行深度检查逻辑 ...
-todowrite([{"id": "2", "content": "深度检查代码", "status": "completed"}])
+TodoWrite([{"content": "深度检查代码", "id": "2", "status": "completed"}])
 
 # 阶段 3: 安全扫描
-todowrite([{"id": "3", "content": "安全漏洞扫描", "status": "in_progress"}])
+TodoWrite([{"content": "安全漏洞扫描", "id": "3", "status": "in_progress"}])
 # ... 执行安全扫描逻辑 ...
-todowrite([{"id": "3", "content": "安全漏洞扫描", "status": "completed"}])
+TodoWrite([{"content": "安全漏洞扫描", "id": "3", "status": "completed"}])
 
 # 阶段 4: 生成报告
-todowrite([{"id": "4", "content": "生成审查报告", "status": "in_progress"}])
-write_file("main/docs/reviews/[功能名]_review.md", review_report)
-todowrite([{"id": "4", "content": "生成审查报告", "status": "completed"}])
+TodoWrite([{"content": "生成审查报告", "id": "4", "status": "in_progress"}])
+Write("main/docs/reviews/[功能名]_review.md", review_report)
+TodoWrite([{"content": "生成审查报告", "id": "4", "status": "completed"}])
 ```
