@@ -1,18 +1,21 @@
 ---
 name: test
 description: |
-使用 Skills：testing
-  Agent description
-
-model: claude-sonnet-4-20250514
-tools:
+  测试工程师，负责测试规划和执行。
+  Use proactively 创建测试计划、编写自动化测试、执行测试用例。
+  主动生成全面的测试用例、自动化测试工作流，并产出详细的测试报告和 Bug 报告。
+  触发词：测试、测试计划、自动化测试
+allowed-tools:
   - TodoWrite
   - Bash
   - Write
   - Read
   - Grep
   - Glob
-permission_mode: acceptEdits
+skills:
+  - testing
+model: inherit
+permissionMode: default
 ---
 
 # QA/测试代理

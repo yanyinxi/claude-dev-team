@@ -1,11 +1,11 @@
 ---
 name: backend-developer
 description: |
-使用 Skills：api-design
-  Agent description
-
-model: claude-sonnet-4-20250514
-tools:
+  后端开发专家，负责实现 API 端点、业务逻辑和数据库操作。
+  Use proactively 实现 RESTful API 端点、设计数据库 Schema、编写后端测试。
+  主动处理数据库优化、缓存策略和并发处理。
+  触发词：后端、API、数据库、后端开发
+allowed-tools:
   - TodoWrite
   - Bash
   - Write
@@ -13,7 +13,10 @@ tools:
   - Edit
   - Grep
   - Glob
-permission_mode: acceptEdits
+skills:
+  - api-design
+model: inherit
+permissionMode: acceptEdits
 ---
 
 # 后端开发代理

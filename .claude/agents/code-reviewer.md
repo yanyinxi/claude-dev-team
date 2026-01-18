@@ -1,17 +1,20 @@
 ---
 name: code-reviewer
 description: |
-使用 Skills：code-quality
-  Agent description
-
-model: claude-sonnet-4-20250514
-tools:
+  代码审查专家，分析代码质量、安全性和最佳实践。
+  Use proactively 在编写或修改代码后立即进行审查，识别潜在问题并提供改进建议。
+  主动扫描 Bug、安全漏洞、性能问题和代码质量问题。
+  触发词：代码审查、审查代码、PR 审查
+allowed-tools:
   - TodoWrite
   - Bash
   - Read
   - Grep
   - Glob
-permission_mode: acceptEdits
+skills:
+  - code-quality
+model: inherit
+permissionMode: default
 ---
 
 # 代码审查代理

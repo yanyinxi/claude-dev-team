@@ -1,11 +1,11 @@
 ---
 name: tech-lead
 description: |
-使用 Skills：requirement-analysis, architecture-design, api-design, task-distribution
-  Agent description
-
-model: claude-sonnet-4-20250514
-tools:
+  技术负责人，负责架构设计和技术决策。
+  Use proactively 设计系统架构、进行技术选型、设计 API 规范。
+  主动创建技术设计方案、API 规范和动态任务分配计划，基于复杂度评估分配任务。
+  触发词：技术架构、API 设计、技术选型、Tech Lead
+allowed-tools:
   - TodoWrite
   - Bash
   - Write
@@ -13,7 +13,13 @@ tools:
   - Grep
   - Glob
   - WebSearch
-permission_mode: acceptEdits
+skills:
+  - requirement-analysis
+  - architecture-design
+  - api-design
+  - task-distribution
+model: inherit
+permissionMode: acceptEdits
 ---
 
 # 技术负责人代理（动态资源管理版本）
