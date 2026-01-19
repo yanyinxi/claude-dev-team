@@ -50,7 +50,7 @@ python main.py
 ### 认证接口
 
 - `POST /api/v1/auth/login/student` - 学生登录（输入昵称，自动创建用户）
-- `POST /api/v1/auth/login/admin` - 管理员登录（admin/admin）
+- `POST /api/v1/auth/login/admin` - 管理员登录（admin/admin123）
 
 ### 题目接口
 
@@ -64,7 +64,7 @@ python main.py
 
 系统使用SQLite数据库，首次启动时会自动创建数据库和示例数据：
 
-- 管理员账号：admin / admin
+- 管理员账号：admin / admin123
 - 10道示例题目（词汇、语法、阅读）
 - 4个成就徽章
 

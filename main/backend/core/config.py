@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     # 管理员账号
     ADMIN_USERNAME: str = "admin"
-    ADMIN_PASSWORD: str = "admin"
+    ADMIN_PASSWORD: str = "admin123"
 
     # 应用配置
     APP_NAME: str = "KET备考系统"

@@ -42,7 +42,7 @@
 - `/main/backend/api/routes/auth_router.py` - 认证路由
 - `/main/backend/services/auth_service.py` - 认证服务
 - `POST /api/v1/auth/login/student` - 学生登录（自动创建用户）
-- `POST /api/v1/auth/login/admin` - 管理员登录（admin/admin）
+- `POST /api/v1/auth/login/admin` - 管理员登录（admin/admin123）
 
 ### 5. 题目接口 ✅
 - `/main/backend/api/routes/question_router.py` - 题目路由
@@ -55,7 +55,7 @@
 - `POST /api/v1/answers` - 提交答案（自动计算得分、连击、成就）
 
 ### 7. 示例数据 ✅
-- 管理员账号：admin / admin
+- 管理员账号：admin / admin123
 - 10道示例题目（词汇3题、语法3题、阅读2题、其他2题）
 - 4个成就徽章（初学者、勤奋学习、连击高手、学霸）
 
