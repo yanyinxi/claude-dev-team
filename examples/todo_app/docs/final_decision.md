@@ -140,17 +140,17 @@
 - [x] 审查报告：main/docs/reviews/todo_app.md
 
 ### 💻 前端代码
-- [x] 主组件：main/src/frontend/TodoApp.tsx
-- [x] 列表组件：main/src/frontend/components/TodoList.tsx
-- [x] 表单组件：main/src/frontend/components/TodoForm.tsx
-- [x] 类型定义：main/src/frontend/types/index.ts
-- [x] 样式文件：main/src/frontend/styles/*.css
+- [x] 主组件：main/frontend/TodoApp.tsx
+- [x] 列表组件：main/frontend/components/TodoList.tsx
+- [x] 表单组件：main/frontend/components/TodoForm.tsx
+- [x] 类型定义：main/frontend/types/index.ts
+- [x] 样式文件：main/frontend/styles/*.css
 
 ### 🔧 后端代码
-- [x] 主文件：main/src/backend/app.js
-- [x] API 路由：main/src/backend/api/todos.js
-- [x] 数据库模型：main/src/backend/models/database.js
-- [x] 初始化脚本：main/src/backend/init.js
+- [x] 主文件：main/backend/app.js
+- [x] API 路由：main/backend/api/todos.js
+- [x] 数据库模型：main/backend/models/database.js
+- [x] 初始化脚本：main/backend/init.js
 
 ### 🧪 测试代码
 - [x] API 测试：main/tests/test_todos.js

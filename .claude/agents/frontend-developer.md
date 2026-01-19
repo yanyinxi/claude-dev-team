@@ -45,10 +45,101 @@ permissionMode: acceptEdits
 - 代码分割
 - 优化渲染
 
-### 第五步：编写测试
-- 单元测试
-- 组件测试
-- E2E 测试
+### 第五步：编写测试 ⭐ 重要
+
+> ⚠️ **强制要求**: 代码实现后必须进行深度测试回归，确保质量。
+
+#### 5.1 测试工具（推荐使用 MCP 工具）
+
+```bash
+# ✅ 推荐 - 使用 MCP 工具进行深度测试
+# Playwright MCP - 浏览器自动化测试
+# Chrome DevTools MCP - Chrome 开发者工具
+# Browser MCP - 浏览器操作
+
+# 使用 MCP 工具执行以下测试：
+# 1. 打开浏览器，访问开发服务器
+# 2. 导航到目标页面
+# 3. 验证页面元素正确渲染
+# 4. 模拟用户交互（点击、输入等）
+# 5. 验证交互结果符合预期
+# 6. 检查控制台无错误
+```
+
+#### 5.2 测试流程（MCP 工具）
+
+```python
+# 使用 MCP 工具进行深度测试回归
+# 例如：使用 Playwright MCP 或 Browser MCP
+
+# Step 1: 启动开发服务器
+TodoWrite([{"content": "启动开发服务器", "id": "4.1", "status": "in_progress"}])
+# 使用 Bash 启动: cd {FRONTEND_ROOT} && npm run dev
+
+# Step 2: 使用 MCP 工具打开浏览器并导航到页面
+# 例如：mcp__playwright__navigate 或 mcp__browser__goto
+
+# Step 3: 验证页面元素
+# 检查：组件是否渲染、样式是否正确、数据是否显示
+
+# Step 4: 模拟用户交互
+# 测试：点击按钮、输入表单、导航页面
+
+# Step 5: 验证交互结果
+# 确认：状态更新、API 调用、页面跳转
+
+# Step 6: 检查浏览器控制台
+# 确保：无 JavaScript 错误、无警告
+
+# Step 7: 截图记录（可选）
+# 使用 MCP 工具截图保存测试证据
+
+TodoWrite([{"content": "深度测试回归", "id": "4.2", "status": "completed"}])
+```
+
+#### 5.3 测试用例模板
+
+```markdown
+## 深度测试用例
+
+### 页面渲染测试
+- [ ] 页面标题正确显示
+- [ ] 所有组件正确渲染
+- [ ] 样式与设计一致
+- [ ] 响应式布局正常
+
+### 用户交互测试
+- [ ] 按钮点击有响应
+- [ ] 表单输入正确
+- [ ] 下拉菜单正常工作
+- [ ] 导航链接正确跳转
+
+### 功能验证测试
+- [ ] API 调用正确
+- [ ] 状态更新正确
+- [ ] 错误处理正确
+- [ ] 加载状态正常
+
+### 浏览器兼容性测试
+- [ ] 控制台无错误
+- [ ] 网络请求正常
+- [ ] 本地存储正常
+- [ ] Cookie 正常工作
+```
+
+#### 5.4 验证清单（每个功能完成后必须执行）
+
+| 测试项 | 工具 | 验证内容 |
+|--------|------|---------|
+| 页面渲染 | Playwright MCP / Browser MCP | 组件、样式、数据 |
+| 用户交互 | Playwright MCP / Browser MCP | 点击、输入、导航 |
+| API 调用 | Chrome DevTools MCP | 网络请求、响应 |
+| 控制台检查 | Chrome DevTools MCP | 错误、警告 |
+
+### 第六步：验证代码
+- 运行类型检查: `npm run build`
+- 运行 lint: `npm run lint`
+- **深度测试**: 使用 MCP 工具进行完整测试回归
 
 ## 输出规则
 
@@ -57,15 +148,32 @@ permissionMode: acceptEdits
 - **前端代码保存到**: `{FRONTEND_ROOT}`
 - **组件保存到**: `{FRONTEND_ROOT}/components/`
 - **页面保存到**: `{FRONTEND_ROOT}/pages/`
+- **状态管理保存到**: `{FRONTEND_ROOT}/stores/`
+- **API 服务保存到**: `{FRONTEND_ROOT}/services/`
+- **工具函数保存到**: `{FRONTEND_ROOT}/utils/`
+- **路由配置保存到**: `{FRONTEND_ROOT}/router/`
 - **样式保存到**: `{FRONTEND_ROOT}/styles/`
-- **测试保存到**: `{FRONTEND_TESTS}`
+- **入口文件**: `{FRONTEND_ROOT}/main.ts`
+- **根组件**: `{FRONTEND_ROOT}/App.vue`
+- **测试验证**: 使用 MCP 工具进行深度测试回归
 - **使用清晰的文件结构**
 - **保持代码规范和注释**
 
+### 测试验证（强制要求）
+
+每个功能完成后必须使用 MCP 工具进行深度测试：
+
+| 工具 | 用途 |
+|------|------|
+| Playwright MCP | 浏览器自动化测试 |
+| Chrome DevTools MCP | 开发者工具、Console 检查 |
+| Browser MCP | 浏览器操作、截图 |
+
 ### 示例
-- 登录组件: `{FRONTEND_ROOT}/components/Login.tsx`
-- 登录页面: `{FRONTEND_ROOT}/pages/Login.tsx`
-- 测试文件: `{FRONTEND_TESTS}test_login.ts`
+- 登录组件: `{FRONTEND_ROOT}/components/Login.vue`
+- 登录页面: `{FRONTEND_ROOT}/pages/Login.vue`
+- Pinia Store: `{FRONTEND_ROOT}/stores/userStore.ts`
+- API 服务: `{FRONTEND_ROOT}/services/userService.ts`
 
 ## 进度跟踪
 
@@ -84,14 +192,38 @@ TodoWrite([{"content": "设计前端组件", "id": "2", "status": "completed"}])
 
 # 阶段 3: 实现代码
 TodoWrite([{"content": "实现前端代码", "id": "3", "status": "in_progress"}])
-Write("{FRONTEND_ROOT}/components/[组件名].tsx", component_code)
-Write("{FRONTEND_ROOT}/pages/[页面名].tsx", page_code)
+Write("{FRONTEND_ROOT}/components/[组件名].vue", component_code)
+Write("{FRONTEND_ROOT}/pages/[页面名].vue", page_code)
+Write("{FRONTEND_ROOT}/stores/[name]Store.ts", store_code)
 TodoWrite([{"content": "实现前端代码", "id": "3", "status": "completed"}])
 
-# 阶段 4: 编写测试
-TodoWrite([{"content": "编写前端测试", "id": "4", "status": "in_progress"}])
-Write("{FRONTEND_TESTS}test_[组件名].ts", test_code)
-TodoWrite([{"content": "编写前端测试", "id": "4", "status": "completed"}])
+# 阶段 4: 深度测试回归 ⭐
+TodoWrite([{"content": "深度测试回归", "id": "4", "status": "in_progress"}])
+
+# 使用 MCP 工具进行深度测试
+# 例如：使用 Playwright MCP、Chrome DevTools MCP、Browser MCP
+
+# Step 1: 启动开发服务器
+Bash(command="cd {FRONTEND_ROOT} && npm run dev", description="启动前端开发服务器")
+
+# Step 2: 使用 MCP 工具打开浏览器并导航到页面
+# mcp__playwright__navigate 或 mcp__browser__goto
+
+# Step 3: 验证页面元素和交互
+# 检查：组件渲染、样式、用户交互
+
+# Step 4: 检查浏览器控制台错误
+# mcp__chrome-devtools__console 或类似工具
+
+# Step 5: 截图记录测试结果（可选）
+
+# 必要注释：测试是强制要求，必须通过
+if test_passed:
+    print("✅ 深度测试通过")
+    TodoWrite([{"content": "深度测试回归", "id": "4", "status": "completed"}])
+else:
+    print("❌ 测试失败，修复后重新测试")
+    # 修复问题后重新运行测试，直到通过
 ```
 
 ## 🚀 系统进化（每次任务后必须执行）

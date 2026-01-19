@@ -9,7 +9,8 @@
       "Grep",
       "Glob",
       "Lsp_*",
-      "TodoWrite"
+      "TodoWrite",
+      "Task"
     ]
   }
 }

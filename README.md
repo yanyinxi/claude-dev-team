@@ -74,9 +74,80 @@ claude-dev-team/
 - ✅ `scripts/evolution-metrics.sh` - 生成进化指标报告
 - ✅ `scripts/agent-healthcheck.sh` - 检查 Agent 健康状态
 
-## 📖 使用方法
+## 📖 简单使用方法
 
-### 基础使用 (与之前相同)
+### 1. 查看 Agent 执行状态
+
+直接输入以下命令查看进度：
+
+| 输入 | 输出 |
+|------|------|
+| `查看当前任务进度` | 简洁进度概览 |
+| `详细进度` | 完整进度报告 |
+| `当前有哪些 Agent 在执行？` | 各 Agent 执行状态 |
+| `执行历史` | 历史任务记录 |
+
+**示例：**
+```
+用户: 查看当前任务进度
+
+助手: 📊 当前任务进度
+
+✅ 需求分析 - 已完成 (5分钟)
+⏳ 架构设计 - 进行中 (3分钟)
+⏸ 并行开发 - 等待中 (将分配 3x前端 + 5x后端)
+
+🔄 正在执行: tech-lead
+📋 等待执行: frontend-developer x3, backend-developer x5
+
+预计剩余时间: 约 20 分钟
+```
+
+### 2. 启动完整开发流程
+
+```bash
+# 直接描述需求，系统自动协调
+实现一个用户管理系统，包含：
+- 用户注册和登录
+- 用户列表管理
+- 权限控制
+
+# 系统自动执行流程：
+# 1. product-manager 分析需求
+# 2. tech-lead 设计架构
+# 3. frontend-developer ×N 并行开发
+# 4. backend-developer ×M 并行开发
+# 5. test 测试
+# 6. code-reviewer 审查
+# 7. evolver 进化
+```
+
+### 3. 指定特定代理
+
+```bash
+# 只做后端
+使用 backend-developer 实现用户认证 API
+
+# 只做前端
+使用 frontend-developer 实现登录页面
+
+# 代码审查
+使用 code-reviewer 代理审查代码
+```
+
+### 4. 查看进化记录
+
+```bash
+# 查看 orchestrator 的执行记录
+cat .claude/agents/orchestrator.md | tail -30
+
+# 查看所有 Agent 的进化记录
+grep -A 10 "进化记录" .claude/agents/*.md
+```
+
+---
+
+## 📖 使用方法
 
 ```bash
 # 直接描述需求，Claude 自动选择合适代理
@@ -214,5 +285,5 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 ---
 
 **维护者**: Claude Dev Team  
-**版本**: 2.0.0  
-**最后更新**: 2026-01-18
+**版本**: 2.1.0  
+**最后更新**: 2026-01-19

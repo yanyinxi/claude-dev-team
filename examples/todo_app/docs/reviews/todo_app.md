@@ -14,15 +14,15 @@
 
 | 文件 | 行数 | 状态 |
 |------|------|------|
-| main/src/frontend/TodoApp.tsx | 67 | ✅ 通过 |
-| main/src/frontend/components/TodoList.tsx | 52 | ✅ 通过 |
-| main/src/frontend/components/TodoForm.tsx | 48 | ✅ 通过 |
-| main/src/frontend/types/index.ts | 12 | ✅ 通过 |
-| main/src/frontend/styles/*.css | - | ✅ 通过 |
-| main/src/backend/app.js | 32 | ✅ 通过 |
-| main/src/backend/api/todos.js | 115 | ✅ 通过 |
-| main/src/backend/models/database.js | 35 | ✅ 通过 |
-| main/src/backend/init.js | 12 | ✅ 通过 |
+| main/frontend/TodoApp.tsx | 67 | ✅ 通过 |
+| main/frontend/components/TodoList.tsx | 52 | ✅ 通过 |
+| main/frontend/components/TodoForm.tsx | 48 | ✅ 通过 |
+| main/frontend/types/index.ts | 12 | ✅ 通过 |
+| main/frontend/styles/*.css | - | ✅ 通过 |
+| main/backend/app.js | 32 | ✅ 通过 |
+| main/backend/api/todos.js | 115 | ✅ 通过 |
+| main/backend/models/database.js | 35 | ✅ 通过 |
+| main/backend/init.js | 12 | ✅ 通过 |
 | main/tests/test_todos.js | 95 | ✅ 通过 |
 
 ## 问题列表
@@ -31,7 +31,7 @@
 
 | 文件 | 行号 | 问题 | 影响 | 修复建议 |
 |------|------|------|------|----------|
-| main/src/backend/api/todos.js | 18 | SQL 查询直接使用用户输入（status 参数） | SQL 注入风险 | 使用参数化查询 |
+| main/backend/api/todos.js | 18 | SQL 查询直接使用用户输入（status 参数） | SQL 注入风险 | 使用参数化查询 |
 
 **当前代码**：
 ```javascript
@@ -49,7 +49,7 @@ if (status) {
 
 | 文件 | 行号 | 建议 | 原因 |
 |------|------|------|------|
-| main/src/backend/api/todos.js | 41-46 | 验证 title 长度 | 防止过长的标题 |
+| main/backend/api/todos.js | 41-46 | 验证 title 长度 | 防止过长的标题 |
 
 **建议代码**：
 ```javascript
@@ -62,7 +62,7 @@ if (title.length > 200) {
 
 | 文件 | 行号 | 建议 | 原因 |
 |------|------|------|------|
-| main/src/frontend/TodoApp.tsx | 16, 28, 42 | 统一错误处理方式 | 提高代码一致性 |
+| main/frontend/TodoApp.tsx | 16, 28, 42 | 统一错误处理方式 | 提高代码一致性 |
 
 **建议**：创建一个通用的错误处理函数，显示用户友好的错误提示。
 

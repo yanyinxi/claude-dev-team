@@ -1,0 +1,770 @@
+openapi: 3.0.3
+info:
+  title: KET备考系统 API
+  description: 专为小学生设计的KET考试备考系统API文档
+  version: 1.0.0
+  contact:
+    name: Tech Lead
+    email: tech@example.com
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: 开发环境
+  - url: https://api.ket-exam.com/api/v1
+    description: 生产环境
+
+tags:
+  - name: 认证
+    description: 用户认证相关接口
+  - name: 题目
+    description: 题目管理相关接口
+  - name: 答题
+    description: 答题和进度相关接口
+  - name: 成就
+    description: 成就和奖励相关接口
+  - name: 管理
+    description: 管理后台相关接口
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nickname:
+          type: string
+          example: "小明"
+        role:
+          type: string
+          enum: [student, admin]
+          example: "student"
+        totalScore:
+          type: integer
+          example: 1250
+        createdAt:
+          type: string
+          format: date-time
+
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        module:
+          type: string
+          enum: [vocabulary, grammar, reading]
+          example: "vocabulary"
+        difficulty:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 2
+        questionText:
+          type: string
+          example: "What is the meaning of 'happy'?"
+        questionImage:
+          type: string
+          nullable: true
+          example: "/images/happy.png"
+        optionA:
+          type: string
+          example: "快乐的"
+        optionB:
+          type: string
+          example: "悲伤的"
+        optionC:
+          type: string
+          nullable: true
+          example: "生气的"
+        optionD:
+          type: string
+          nullable: true
+          example: "害怕的"
+        explanation:
+          type: string
+          example: "happy表示快乐的、高兴的"
+
+    Achievement:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "初学者"
+        description:
+          type: string
+          example: "完成10道题目"
+        badgeIcon:
+          type: string
+          example: "/badges/beginner.png"
+        isUnlocked:
+          type: boolean
+          example: true
+        unlockedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    Progress:
+      type: object
+      properties:
+        totalQuestions:
+          type: integer
+          example: 50
+        correctAnswers:
+          type: integer
+          example: 42
+        accuracy:
+          type: number
+          format: float
+          example: 84.0
+        streak:
+          type: integer
+          example: 5
+        dailyGoal:
+          type: integer
+          example: 20
+        completedToday:
+          type: integer
+          example: 15
+
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: "success"
+        data:
+          type: object
+
+paths:
+  /auth/login/student:
+    post:
+      tags:
+        - 认证
+      summary: 学生登录
+      description: 学生通过昵称登录，如果昵称不存在则自动创建账号
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nickname
+              properties:
+                nickname:
+                  type: string
+                  minLength: 2
+                  maxLength: 20
+                  example: "小明"
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+                          token:
+                            type: string
+                            example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          description: 请求参数错误
+
+  /auth/login/admin:
+    post:
+      tags:
+        - 认证
+      summary: 管理员登录
+      description: 管理员通过用户名和密码登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: "admin"
+                password:
+                  type: string
+                  format: password
+                  example: "admin"
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+                          token:
+                            type: string
+        '401':
+          description: 用户名或密码错误
+
+  /questions/random:
+    get:
+      tags:
+        - 题目
+      summary: 获取随机题目
+      description: 根据模块和难度获取一道随机题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: module
+          in: query
+          schema:
+            type: string
+            enum: [vocabulary, grammar, reading]
+          example: "vocabulary"
+        - name: difficulty
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          example: 2
+      responses:
+        '200':
+          description: 成功获取题目
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Question'
+        '401':
+          description: 未授权
+
+  /answers:
+    post:
+      tags:
+        - 答题
+      summary: 提交答案
+      description: 提交用户的答案并返回结果和奖励信息
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - questionId
+                - answer
+                - answerTime
+              properties:
+                questionId:
+                  type: integer
+                  example: 1
+                answer:
+                  type: string
+                  enum: [A, B, C, D]
+                  example: "A"
+                answerTime:
+                  type: integer
+                  description: 答题时间(秒)
+                  example: 8
+      responses:
+        '200':
+          description: 答案提交成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          isCorrect:
+                            type: boolean
+                            example: true
+                          correctAnswer:
+                            type: string
+                            example: "A"
+                          explanation:
+                            type: string
+                            example: "happy表示快乐的、高兴的"
+                          score:
+                            type: integer
+                            example: 15
+                          streak:
+                            type: integer
+                            example: 5
+                          newAchievements:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Achievement'
+                          encouragement:
+                            type: string
+                            example: "太棒了！连续答对5题！"
+
+  /progress:
+    get:
+      tags:
+        - 答题
+      summary: 获取学习进度
+      description: 获取当前用户的学习进度统计
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功获取进度
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Progress'
+
+  /progress/calendar:
+    get:
+      tags:
+        - 答题
+      summary: 获取学习日历
+      description: 获取用户的学习打卡日历
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+          example: 2026
+        - name: month
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          example: 1
+      responses:
+        '200':
+          description: 成功获取日历
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          days:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                date:
+                                  type: string
+                                  format: date
+                                  example: "2026-01-15"
+                                questionsCompleted:
+                                  type: integer
+                                  example: 20
+                                studyTime:
+                                  type: integer
+                                  description: 学习时长(分钟)
+                                  example: 25
+
+  /achievements:
+    get:
+      tags:
+        - 成就
+      summary: 获取成就列表
+      description: 获取所有成就及解锁状态
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功获取成就列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Achievement'
+
+  /wrong-questions:
+    get:
+      tags:
+        - 答题
+      summary: 获取错题本
+      description: 获取用户的错题列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+          example: 20
+      responses:
+        '200':
+          description: 成功获取错题列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                            example: 15
+                          questions:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: '#/components/schemas/Question'
+                                - type: object
+                                  properties:
+                                    wrongCount:
+                                      type: integer
+                                      example: 3
+                                    lastWrongAt:
+                                      type: string
+                                      format: date-time
+
+  /admin/questions:
+    get:
+      tags:
+        - 管理
+      summary: 获取题目列表(管理员)
+      description: 管理员获取所有题目列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: module
+          in: query
+          schema:
+            type: string
+            enum: [vocabulary, grammar, reading]
+        - name: difficulty
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 成功获取题目列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                          questions:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: '#/components/schemas/Question'
+                                - type: object
+                                  properties:
+                                    correctAnswer:
+                                      type: string
+                                      example: "A"
+        '403':
+          description: 权限不足
+
+    post:
+      tags:
+        - 管理
+      summary: 创建题目(管理员)
+      description: 管理员创建新题目
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - module
+                - difficulty
+                - questionText
+                - optionA
+                - optionB
+                - correctAnswer
+              properties:
+                module:
+                  type: string
+                  enum: [vocabulary, grammar, reading]
+                difficulty:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                questionText:
+                  type: string
+                questionImage:
+                  type: string
+                  nullable: true
+                optionA:
+                  type: string
+                optionB:
+                  type: string
+                optionC:
+                  type: string
+                  nullable: true
+                optionD:
+                  type: string
+                  nullable: true
+                correctAnswer:
+                  type: string
+                  enum: [A, B, C, D]
+                explanation:
+                  type: string
+      responses:
+        '201':
+          description: 题目创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Question'
+                          - type: object
+                            properties:
+                              correctAnswer:
+                                type: string
+        '403':
+          description: 权限不足
+
+  /admin/questions/{id}:
+    patch:
+      tags:
+        - 管理
+      summary: 更新题目(管理员)
+      description: 管理员更新题目信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                questionText:
+                  type: string
+                optionA:
+                  type: string
+                optionB:
+                  type: string
+                optionC:
+                  type: string
+                optionD:
+                  type: string
+                correctAnswer:
+                  type: string
+                  enum: [A, B, C, D]
+                explanation:
+                  type: string
+      responses:
+        '200':
+          description: 更新成功
+        '403':
+          description: 权限不足
+        '404':
+          description: 题目不存在
+
+    delete:
+      tags:
+        - 管理
+      summary: 删除题目(管理员)
+      description: 管理员删除题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 删除成功
+        '403':
+          description: 权限不足
+        '404':
+          description: 题目不存在
+
+  /admin/users:
+    get:
+      tags:
+        - 管理
+      summary: 获取用户列表(管理员)
+      description: 管理员获取所有用户列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 成功获取用户列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                          users:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/User'
+        '403':
+          description: 权限不足
+
+  /admin/statistics:
+    get:
+      tags:
+        - 管理
+      summary: 获取统计数据(管理员)
+      description: 管理员获取系统统计数据
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功获取统计数据
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          totalUsers:
+                            type: integer
+                            example: 150
+                          activeUsers:
+                            type: integer
+                            example: 85
+                          totalQuestions:
+                            type: integer
+                            example: 500
+                          totalAnswers:
+                            type: integer
+                            example: 12500
+                          averageAccuracy:
+                            type: number
+                            format: float
+                            example: 78.5
+                          questionStats:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                questionId:
+                                  type: integer
+                                correctRate:
+                                  type: number
+                                  format: float
+                                totalAttempts:
+                                  type: integer
+        '403':
+          description: 权限不足

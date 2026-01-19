@@ -11,7 +11,7 @@ description: 项目技术标准索引，定义项目的技术栈规范、代码�
 
 | 字段 | 值 |
 |------|-----|
-| 版本 | 1.6.0 |
+| 版本 | 2.0.0 |
 
 ## 🚀 进化机制
 
@@ -92,6 +92,9 @@ description: 项目技术标准索引，定义项目的技术栈规范、代码�
 
 | 日期 | 版本 | 变更类型 | 主要变更 |
 |------|------|---------|---------|
+| 2026-01-19 | 2.0.0 | 路径 | 修复项目结构，移除多余的 `src/` 层级，改为 `main/frontend/` 和 `main/backend/` |
+| 2026-01-19 | 1.9.0 | 路径 | 修复前端路径 `{FRONTEND_ROOT}` 为 `main/src/frontend/` |
+| 2026-01-19 | 1.7.0 | 规范 | 新增中文代码注释规范（必要/重要/核心三级） |
 | 2026-01-18 | 1.6.0 | 机制 | 新增自动进化机制 |
 | 2026-01-18 | 1.5.0 | 路径 | Agent 文件统一使用路径变量 |
 | 2026-01-18 | 1.4.0 | 结构 | 统一使用 main/src/backend/ 和 main/src/frontend/ |
@@ -108,9 +111,9 @@ description: 项目技术标准索引，定义项目的技术栈规范、代码�
 
 | 变量 | 值 (当前项目) | 说明 |
 |------|--------------|------|
-| `{PROJECT_ROOT}` | `main/src/` | 项目源码根目录 |
-| `{BACKEND_ROOT}` | `main/src/backend/` | 后端代码根目录 |
-| `{FRONTEND_ROOT}` | `main/src/frontend/` | 前端代码根目录 |
+| `{PROJECT_ROOT}` | `main/` | 项目源码根目录 |
+| `{BACKEND_ROOT}` | `main/backend/` | 后端代码根目录 |
+| `{FRONTEND_ROOT}` | `main/frontend/` | **前端代码根目录** |
 
 ### 测试目录变量
 
@@ -152,6 +155,10 @@ description: 项目技术标准索引，定义项目的技术栈规范、代码�
 | 状态管理 | `{FRONTEND_ROOT}/stores/` | Pinia 全局状态 |
 | API 服务 | `{FRONTEND_ROOT}/services/` | HTTP 请求、数据转换 |
 | 工具函数 | `{FRONTEND_ROOT}/utils/` | 通用函数、类型定义 |
+| 路由配置 | `{FRONTEND_ROOT}/router/` | Vue Router 路由配置 |
+| 样式资源 | `{FRONTEND_ROOT}/styles/` | 全局样式、主题配置 |
+| 入口文件 | `{FRONTEND_ROOT}/main.ts` | 应用入口文件 |
+| 根组件 | `{FRONTEND_ROOT}/App.vue` | 应用根组件 |
 | 样式资源 | `{FRONTEND_ROOT}/styles/` | 全局样式、主题配置 |
 
 ### 路径使用示例
@@ -355,6 +362,312 @@ import {FRONTEND_ROOT}.stores.userStore from '@/stores/userStore'
 
 ---
 
+## 📝 代码注释规范
+
+> ⚠️ **重要**: 所有代码必须添加必要的中文注释，尤其是核心逻辑和关键实现。
+
+### 注释级别
+
+| 级别 | 说明 | 场景 |
+|------|------|------|
+| **必要注释** | 必须添加，不加扣分 | 函数/方法、类、复杂逻辑 |
+| **重要注释** | 强烈建议添加 | 业务逻辑、算法、配置 |
+| **核心注释** | 必须详细说明 | 关键流程、边界情况、hack 方案 |
+
+### Python 注释规范
+
+```python
+# =====================================================
+# 核心注释：模块功能说明
+# =====================================================
+# 用户认证服务 - 处理用户登录、注册、Token 生成与验证
+# 依赖：JWT 加密、bcrypt 密码加密
+# =====================================================
+
+from datetime import datetime, timedelta
+
+
+class AuthService:
+    """
+    认证服务类 - 核心业务逻辑
+
+    功能：
+    1. 用户登录验证
+    2. JWT Token 生成与刷新
+    3. 密码加密与验证
+
+    使用示例：
+        service = AuthService()
+        token = service.login("user@example.com", "password")
+    """
+
+    # 重要注释：常量定义
+    TOKEN_EXPIRE_HOURS = 24  # Token 过期时间（小时）
+    REFRESH_EXPIRE_DAYS = 7  # 刷新 Token 过期时间（天）
+
+    def __init__(self, secret_key: str):
+        """
+        初始化认证服务
+
+        Args:
+            secret_key: JWT 加密密钥，生产环境从环境变量读取
+        """
+        self.secret_key = secret_key
+
+    async def login(self, email: str, password: str) -> dict:
+        """
+        用户登录 - 核心业务方法
+
+        Args:
+            email: 用户邮箱
+            password: 原始密码（未加密）
+
+        Returns:
+            dict: 包含 access_token 和 refresh_token
+
+        Raises:
+            ValidationException: 参数验证失败
+            UnauthorizedException: 账号或密码错误
+
+        业务流程：
+        1. 校验邮箱格式
+        2. 从数据库获取用户
+        3. 验证密码（bcrypt）
+        4. 生成 JWT Token
+        5. 记录登录日志
+        """
+        # 必要注释：校验邮箱格式
+        if not self._validate_email(email):
+            raise ValidationException([{"field": "email", "error": "邮箱格式不正确"}])
+
+        # 重要注释：查询用户（使用 N+1 优化后的批量查询）
+        user = await self.user_repo.get_by_email(email)
+        if not user:
+            # 核心注释：安全考虑，不提示具体错误信息
+            raise UnauthorizedException("账号或密码错误")
+
+        # 必要注释：验证密码
+        if not self._verify_password(password, user.hashed_password):
+            raise UnauthorizedException("账号或密码错误")
+
+        # 核心注释：生成 Token，封装敏感信息
+        access_token = self._generate_token(
+            user_id=user.id,
+            email=user.email,
+            role=user.role
+        )
+
+        # 记录登录日志
+        await self._log_login(user.id, "success")
+
+        return {
+            "access_token": access_token,
+            "refresh_token": self._generate_refresh_token(user.id),
+            "token_type": "Bearer"
+        }
+
+    def _generate_token(self, user_id: int, email: str, role: str) -> str:
+        """
+        生成 JWT Token - 核心加密逻辑
+
+        Args:
+            user_id: 用户 ID
+            email: 用户邮箱
+            role: 用户角色
+
+        Returns:
+            str: JWT Token 字符串
+
+        核心实现：
+        - 使用 HS256 算法加密
+        -  payload 包含用户基本信息
+        - 设置过期时间防止 Token 泄露
+        """
+        # 必要注释：构建 payload
+        payload = {
+            "sub": str(user_id),  # subject: 用户标识
+            "email": email,
+            "role": role,
+            "iat": datetime.utcnow(),  # issued at: 签发时间
+            "exp": datetime.utcnow() + timedelta(hours=self.TOKEN_EXPIRE_HOURS)
+        }
+
+        # 核心注释：JWT 加密编码
+        token = jwt.encode(payload, self.secret_key, algorithm="HS256")
+        return token
+```
+
+### Vue/TypeScript 注释规范
+
+```typescript
+// =====================================================
+// 核心注释：组件功能说明
+// =====================================================
+// 用户登录表单组件
+// 功能：邮箱/密码登录、记住我、忘记密码链接
+// 依赖：userStore、validationUtils
+// =====================================================
+
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/userStore'
+import { validateEmail, validatePassword } from '@/utils/validationUtils'
+
+// 重要注释：Props 类型定义
+interface Props {
+  /** 是否显示记住我复选框 */
+  showRememberMe?: boolean
+  /** 登录成功后的回调函数 */
+  onSuccess?: (user: User) => void
+  /** 自定义登录 API 地址 */
+  loginApiUrl?: string
+}
+
+/**
+ * 用户登录表单组件 - 核心业务组件
+
+ * 使用示例：
+ * <UserLoginForm
+ *   :show-remember-me="true"
+ *   :on-success="handleLoginSuccess"
+ * />
+ */
+const UserLoginForm = (props: Props) => {
+  // =====================================================
+  // 必要注释：响应式数据定义
+  // =====================================================
+  const email = ref('')           // 用户邮箱
+  const password = ref('')        // 用户密码
+  const loading = ref(false)      // 加载状态
+  const errorMessage = ref('')    // 错误信息
+  const rememberMe = ref(false)   // 记住我
+
+  // =====================================================
+  // 核心注释：计算属性
+  // =====================================================
+  const isFormValid = computed(() => {
+    // 校验逻辑：邮箱和密码都不为空
+    return validateEmail(email.value) && password.value.length >= 6
+  })
+
+  // =====================================================
+  // 必要注释：方法定义
+  // =====================================================
+
+  /**
+   * 处理登录 - 核心业务方法
+
+   * 业务流程：
+   * 1. 表单校验
+   * 2. 显示加载状态
+   * 3. 调用登录 API
+   * 4. 处理成功/失败结果
+   */
+  const handleLogin = async () => {
+    // 必要注释：表单校验
+    if (!isFormValid.value) {
+      errorMessage.value = '请输入正确的邮箱和密码'
+      return
+    }
+
+    try {
+      loading.value = true
+      errorMessage.value = ''
+
+      // 核心注释：调用登录 API
+      const response = await fetch(props.loginApiUrl || '/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.value,
+          password: password.value,
+          remember: rememberMe.value
+        })
+      })
+
+      // 重要注释：处理响应
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || '登录失败')
+      }
+
+      const data = await response.json()
+
+      // 核心注释：存储用户信息到 Pinia
+      const userStore = useUserStore()
+      userStore.setToken(data.access_token)
+      userStore.setUser(data.user)
+
+      // 重要注释：记住我功能 - 存储到 localStorage
+      if (rememberMe.value) {
+        localStorage.setItem('remember_email', email.value)
+      } else {
+        localStorage.removeItem('remember_email')
+      }
+
+      // 回调通知
+      props.onSuccess?.(data.user)
+
+    } catch (error) {
+      // 核心注释：错误处理 - 不暴露敏感信息
+      errorMessage.value = error instanceof Error ? error.message : '登录失败，请稍后重试'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // =====================================================
+  // 必要注释：生命周期钩子
+  // =====================================================
+
+  /**
+   * 组件挂载时检查记住的邮箱
+   */
+  onMounted(() => {
+    const savedEmail = localStorage.getItem('remember_email')
+    if (savedEmail && props.showRememberMe) {
+      email.value = savedEmail
+      rememberMe.value = true
+    }
+  })
+
+  return {
+    // 模板需要使用的变量和方法
+    email,
+    password,
+    loading,
+    errorMessage,
+    rememberMe,
+    isFormValid,
+    handleLogin
+  }
+}
+
+export default UserLoginForm
+```
+
+### 注释检查清单
+
+| 检查项 | 描述 |
+|--------|------|
+| ✅ 文件头注释 | 每个文件必须有功能说明、作者、创建时间 |
+| ✅ 类注释 | 每个类必须有用途说明和使用示例 |
+| ✅ 函数注释 | 每个函数必须有参数、返回值、异常说明 |
+| ✅ 核心逻辑注释 | 关键算法、业务流程必须有中文注释 |
+| ✅ 边界情况注释 | 特殊输入、异常处理必须有说明 |
+| ✅ TODO 注释 | 未完成的代码必须有 TODO 说明 |
+
+### 不需要注释的情况
+
+| 情况 | 说明 |
+|------|------|
+| 简单 Getter/Setter | `getName() { return this.name }` |
+| 显而易见的变量 | `const items = []` |
+| 通用模板代码 | Vue 组件的基本结构 |
+| 第三方库调用 | 遵循原库文档即可 |
+
+---
+
 ## API 规范
 
 ```
@@ -372,10 +685,10 @@ DELETE /api/v1/users/:id      # 删除（软删除）
 
 ## 目录结构
 
-### 前端 (Vue 3 + Vite) - 6 个目录
+### 前端 (Vue 3 + Vite) - `{FRONTEND_ROOT}` 下的结构
 
 ```
-src/
+{FRONTEND_ROOT}/
 ├── components/      # UI 组件库
 │                    # 职责：所有 Vue 组件（通用 + 业务）
 │                    # 边界：纯 UI 渲染，不含业务逻辑
@@ -396,9 +709,31 @@ src/
 │                    # 职责：通用函数、类型定义、常量、helpers
 │                    # 边界：无依赖、纯函数、可复用代码
 │
-└── styles/         # 样式 & 资源
-                    # 职责：全局样式、资源文件 (assets)、主题配置
-                    # 边界：只放样式和静态资源，不放逻辑代码
+├── styles/         # 样式 & 资源
+│                    # 职责：全局样式、资源文件 (assets)、主题配置
+│                    # 边界：只放样式和静态资源，不放逻辑代码
+│
+├── router/         # 路由配置
+│                    # 职责：Vue Router 路由定义
+│                    # 边界：路由规则，不涉及业务逻辑
+│
+├── main.ts         # 应用入口
+│                    # 职责：Vue 应用初始化
+│
+├── App.vue         # 根组件
+│                    # 职责：应用顶层组件
+│
+├── index.html      # HTML 入口
+│                    # 职责：页面骨架，挂载 Vue 应用
+│
+├── package.json    # 项目配置
+│                    # 职责：依赖管理、脚本命令
+│
+├── vite.config.ts  # Vite 配置
+│                    # 职责：构建工具配置
+│
+└── tsconfig.json   # TypeScript 配置
+                    # 职责：类型检查、编译选项
 ```
 
 ### 后端 (Python FastAPI) - 6 个目录
@@ -1157,6 +1492,22 @@ uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## 进化记录
+
+### 2026-01-19 v2.0.0
+- **修复项目结构**: 移除多余的 `main/src/` 层级
+- 将 `main/src/frontend/` 移动到 `main/frontend/`
+- 将 `main/src/backend/` 移动到 `main/backend/`
+- 更新所有路径变量配置：`{PROJECT_ROOT}` = `main/`, `{FRONTEND_ROOT}` = `main/frontend/`, `{BACKEND_ROOT}` = `main/backend/`
+
+### 2026-01-19 v1.9.0
+- **修复前端路径配置**: `{FRONTEND_ROOT}` 从 `main/src/frontend/src/` 改为 `main/src/frontend/`
+- 更新前端目录结构，添加更多子目录说明（router, styles, 配置文件等）
+- 更新 frontend-developer.md 示例路径
+
+### 2026-01-19 v1.7.0
+- **新增中文代码注释规范**: 定义必要、重要、核心三级注释标准
+- 添加 Python 和 Vue/TypeScript 完整注释示例
+- 包含注释检查清单，明确哪些情况需要/不需要注释
 
 ### 2026-01-18 v1.6.0
 - **新增自动进化机制**: Evolver Agent 现在可以自动更新 project_standards.md
