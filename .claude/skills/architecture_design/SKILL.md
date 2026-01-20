@@ -28,3 +28,9 @@ description: 设计系统架构和技术方案。参考 project_standards.md 获
 
 - 技术设计 → `main/docs/tech_designs/[功能名].md`
 - API 规范 → `main/docs/api/[功能名].yaml`
+
+---
+
+## 📈 进化记录（自动生成）
+
+_此章节由 Evolver 自动更新，记录从实际任务执行中学到的经验和最佳实践。_

@@ -43,7 +43,7 @@
   },
   "cleanupPeriodDays": 30,
   "outputStyle": "default",
-  "model": "inherit",
+  "model": "sonnet",
   "env": {},
   "respectGitignore": true
 }

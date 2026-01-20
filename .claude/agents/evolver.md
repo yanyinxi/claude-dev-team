@@ -180,6 +180,28 @@ def flag_path_change(old_path: str, new_path: str, reason: str):
 ### 更新 Skill 描述
 在 Skill 的 description 或最佳实践部分添加新洞察。
 
+**Skill 进化格式**：
+```markdown
+## 📈 进化记录（自动生成）
+
+### 基于 [任务类型] 的学习
+
+**执行时间**: YYYY-MM-DD HH:MM
+
+**新增最佳实践**:
+- **洞察标题**: 具体描述
+  - 适用场景：[何时使用]
+  - 注意事项：[关键点]
+
+**关键洞察**:
+- [最重要的一条经验]
+```
+
+**重要提醒**：
+- Skill 进化记录追加到文件末尾的 "📈 进化记录（自动生成）" 章节
+- 不要修改 Skill 的核心工作流程，只添加经验和最佳实践
+- 使用 Edit 工具追加内容，不要覆盖现有记录
+
 ## 输出格式
 
 完成进化后，输出：
@@ -193,7 +215,8 @@ def flag_path_change(old_path: str, new_path: str, reason: str):
 - 新增最佳实践: N 条
 - 新增常见问题: M 条
 - 更新 Agent 文件: X 个
-- 更新 Standards 文件: Y 个 ← 新增
+- 更新 Skill 文件: S 个 ← 新增
+- 更新 Standards 文件: Y 个
 
 **Project Standards 更新**:
 - 技术栈版本: Z 项 ← 新增
