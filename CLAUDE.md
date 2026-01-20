@@ -47,7 +47,7 @@ Claude 会根据关键词自动选择合适的代理：
 ### 健康检查
 
 ```bash
-python3 .claude/scripts/verify_standards.py --verbose
+python3 .claude/hooks/scripts/verify_standards.py --verbose
 ```
 
 ## 架构设计
@@ -249,7 +249,7 @@ Claude 根据请求关键词自动选择合适的代理。
   - `.claude/agents/*.md` → Agent 文件格式验证
   - `.claude/skills/*/SKILL.md` → Skill 文件格式验证
 - **脚本位置**: `.claude/hooks/scripts/quality-gate.sh`
-- **验证脚本**: `.claude/scripts/verify_standards.py`
+- **验证脚本**: `.claude/hooks/scripts/verify_standards.py`
 
 #### PreToolUse Hook - 安全检查
 - **触发时机**: 执行 Bash 命令前
@@ -311,9 +311,8 @@ verify_standards.py 验证
 │       ├── quality-gate.sh      # 质量门禁
 │       ├── safety-check.sh      # 安全检查
 │       ├── context-enhancer.sh  # 上下文增强
-│       └── test-hooks.sh        # 测试脚本
-├── scripts/             # 验证脚本
-│   └── verify_standards.py
+│       ├── test-hooks.sh        # 测试脚本
+│       └── verify_standards.py  # 验证脚本
 ├── docs/                # 文档
 │   └── claude-code-reference.md
 ├── settings.json        # 项目配置

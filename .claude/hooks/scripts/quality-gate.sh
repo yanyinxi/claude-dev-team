@@ -10,7 +10,7 @@ FILE_PATH="$2"
 # 如果是 project_standards.md，运行验证
 if [[ "$FILE_PATH" == *"project_standards.md"* ]]; then
     echo "🔍 验证 project_standards.md..."
-    if python3 "$PROJECT_DIR/.claude/scripts/verify_standards.py" --verbose 2>&1; then
+    if python3 "$PROJECT_DIR/.claude/hooks/scripts/verify_standards.py" --verbose 2>&1; then
         echo "✅ project_standards.md 验证通过"
     else
         echo "❌ project_standards.md 验证失败" >&2
@@ -21,7 +21,7 @@ fi
 # 如果是 agent 文件，验证格式
 if [[ "$FILE_PATH" == *".claude/agents/"* ]]; then
     echo "🔍 验证 agent 文件格式..."
-    if python3 "$PROJECT_DIR/.claude/scripts/verify_standards.py" --verbose 2>&1; then
+    if python3 "$PROJECT_DIR/.claude/hooks/scripts/verify_standards.py" --verbose 2>&1; then
         echo "✅ Agent 文件验证通过"
     else
         echo "⚠️ Agent 文件验证有警告，但允许继续"
