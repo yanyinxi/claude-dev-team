@@ -25,18 +25,6 @@
       "env": {},
       "description": "文件系统访问 - 安全的文件读写操作，支持项目文件管理"
     },
-    "git": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-git",
-        "--repository",
-        "/Users/yanyinxi/工作/code/Java/claudecode/claude-dev-team"
-      ],
-      "type": "stdio",
-      "env": {},
-      "description": "Git 仓库管理 - 查看提交历史、分支管理、diff 对比、代码审查"
-    },
     "memory": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
@@ -44,16 +32,9 @@
       "env": {},
       "description": "知识图谱记忆 - 跨会话持久化上下文，记住项目知识和决策"
     },
-    "fetch": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-fetch"],
-      "type": "stdio",
-      "env": {},
-      "description": "网页内容获取 - 抓取和转换网页内容，用于文档查询和 API 调研"
-    },
     "sequential-thinking": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequentialthinking"],
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
       "type": "stdio",
       "env": {},
       "description": "结构化思维 - 通过动态思维序列增强复杂问题解决能力"

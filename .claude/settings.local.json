@@ -26,5 +26,13 @@
       "WebSearch",
       "WebFetch(domain:digma.ai)"
     ]
-  }
+  },
+  "disabledMcpjsonServers": [
+    "chrome-devtools",
+    "playwright",
+    "filesystem",
+    "memory",
+    "sequential-thinking",
+    "github"
+  ]
 }
