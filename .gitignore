@@ -126,6 +126,9 @@ CLAUDE.local.md
 # MCP服务器本地配置
 .claude/.mcp.local.json
 
+# MCP 项目配置可以提交（不包含敏感信息，使用环境变量引用）
+# .mcp.json 现在安全了，可以提交到 Git
+
 # 环境变量文件
 .env
 .env.local
