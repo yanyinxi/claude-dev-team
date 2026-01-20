@@ -238,12 +238,45 @@ Claude 根据请求关键词自动选择合适的代理。
 }
 ```
 
-### Hooks 配置 (.claude/hooks/hooks.json)
+### Hooks 自动化系统
 
-自动化质量门禁：
+项目使用 Hooks 系统实现自动化质量保障（配置位于 `.claude/settings.json`）：
 
-- **PostToolUse**: Write/Edit 后验证 project_standards.md 和 agent 文件
-- **Stop**: 任务完成时提醒调用 evolver
+#### PostToolUse Hook - 质量门禁
+- **触发时机**: 使用 Write/Edit 工具修改文件后
+- **验证内容**:
+  - `project_standards.md` → 完整性验证（文件结构、路径变量、版本更新）
+  - `.claude/agents/*.md` → Agent 文件格式验证
+  - `.claude/skills/*/SKILL.md` → Skill 文件格式验证
+- **脚本位置**: `.claude/hooks/scripts/quality-gate.sh`
+- **验证脚本**: `.claude/scripts/verify_standards.py`
+
+#### PreToolUse Hook - 安全检查
+- **触发时机**: 执行 Bash 命令前
+- **保护内容**: 阻止危险命令（rm -rf /、dd、fork bombs、.git 目录操作）
+- **脚本位置**: `.claude/hooks/scripts/safety-check.sh`
+
+#### UserPromptSubmit Hook - 上下文增强
+- **触发时机**: 用户提交新消息时
+- **提供信息**: Git 状态、最近提交、进化统计、代理状态
+- **脚本位置**: `.claude/hooks/scripts/context-enhancer.sh`
+
+#### Stop Hook - 进化提醒
+- **触发时机**: 任务完成时
+- **作用**: 提醒是否需要调用 evolver 代理进行系统进化
+
+**验证流程**：
+```
+修改文件 (Write/Edit)
+    ↓
+PostToolUse Hook 触发
+    ↓
+quality-gate.sh 执行
+    ↓
+verify_standards.py 验证
+    ↓
+验证结果返回 (通过/失败)
+```
 
 ### Git 归属标注
 
@@ -273,8 +306,12 @@ Claude 根据请求关键词自动选择合适的代理。
 │   ├── testing/SKILL.md
 │   ├── code_quality/SKILL.md
 │   └── task_distribution/SKILL.md
-├── hooks/               # 自动化钩子
-│   └── hooks.json
+├── hooks/               # 自动化钩子脚本
+│   └── scripts/
+│       ├── quality-gate.sh      # 质量门禁
+│       ├── safety-check.sh      # 安全检查
+│       ├── context-enhancer.sh  # 上下文增强
+│       └── test-hooks.sh        # 测试脚本
 ├── scripts/             # 验证脚本
 │   └── verify_standards.py
 ├── docs/                # 文档

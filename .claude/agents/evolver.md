@@ -228,177 +228,23 @@ def flag_path_change(old_path: str, new_path: str, reason: str):
 - [最重要的一条]
 ```
 
-### 8. 调用验证脚本（必需步骤）
+### 8. 验证由 Hooks 自动完成
 
-完成进化后，**必须**调用验证脚本确认更新有效：
+完成进化后，验证会由 PostToolUse Hook 自动触发：
 
-```python
-import subprocess
+- ✅ 修改 project_standards.md → 自动验证
+- ✅ 修改 agent 文件 → 自动验证
+- ✅ 修改 skill 文件 → 自动验证
 
-def verify_standards_update(file_path: str = ".claude/project_standards.md") -> bool:
-    """调用验证脚本确认更新有效"""
-    
-    result = subprocess.run(
-        ["python3", ".claude/scripts/verify_standards.py", "--verbose"],
-        capture_output=True,
-        text=True
-    )
-    
-    print(result.stdout)
-    if result.stderr:
-        print("STDERR:", result.stderr)
-    
-    if result.returncode != 0:
-        print("⚠️ 验证失败，执行回滚或标记为待人工处理")
-        
-        # 选项 A: 回滚到上一版本
-        # rollback(file_path)
-        
-        # 选项 B: 标记为待人工处理
-        flag_for_manual_review(file_path, "验证失败")
-        
-        return False
-    
-    print("✅ 验证通过，进化完成")
-    return True
+**无需手动调用验证脚本**，Hooks 系统会自动处理。
 
-# 在进化完成后调用验证
-verify_standards_update()
-```
+验证脚本位置：`.claude/scripts/verify_standards.py`
+Hook 配置位置：`.claude/settings.json` (PostToolUse)
+Hook 脚本位置：`.claude/hooks/scripts/quality-gate.sh`
 
-### 进化验证清单
-
-完成进化后，必须验证以下项目：
-
-#### 6.1 文件结构验证
-```python
-def verify_file_structure(file_path: str) -> bool:
-    """验证文件结构完整性"""
-    content = read(file_path)
-    
-    # 检查必需的章节是否存在
-    required_sections = [
-        "# 项目技术标准",
-        "## 项目信息",
-        "## 📂 路径配置",
-        "## ⚡ 快速参考",
-        "## 最佳实践",
-        "## 进化记录"
-    ]
-    
-    for section in required_sections:
-        if section not in content:
-            print(f"❌ 缺少必要章节: {section}")
-            return False
-    
-    # 检查代码块是否平衡
-    code_blocks = content.count("```")
-    if code_blocks % 2 != 0:
-        print(f"❌ 代码块不平衡: {code_blocks} 个标记")
-        return False
-    
-    print("✅ 文件结构验证通过")
-    return True
-```
-
-#### 6.2 路径变量一致性验证
-```python
-def verify_path_variables(file_path: str) -> bool:
-    """验证路径变量定义与使用一致"""
-    content = read(file_path)
-    
-    # 检查变量是否在路径配置章节定义
-    defined_vars = extract_variables(content, section="## 📂 路径配置")
-    used_vars = extract_variables(content)
-    
-    # 检查是否所有变量都有定义
-    undefined = used_vars - defined_vars
-    if undefined:
-        print(f"❌ 未定义的变量: {undefined}")
-        return False
-    
-    # 检查是否有未使用的变量
-    unused = defined_vars - used_vars
-    if unused:
-        print(f"⚠️ 未使用的变量: {unused}")
-    
-    print("✅ 路径变量一致性验证通过")
-    return True
-```
-
-#### 6.3 版本更新验证
-```python
-def verify_version_update(file_path: str) -> bool:
-    """验证版本更新逻辑"""
-    content = read(file_path)
-    
-    # 检查版本号格式 (v1.x.x)
-    version_pattern = r"\| 版本 \| (\d+\.\d+\.\d+) \|"
-    match = re.search(version_pattern, content)
-    
-    if not match:
-        print("❌ 未找到版本号")
-        return False
-    
-    version = match.group(1)
-    # 验证版本号格式
-    parts = version.split(".")
-    if len(parts) != 3 or not all(p.isdigit() for p in parts):
-        print(f"❌ 版本号格式错误: {version}")
-        return False
-    
-    # 检查进化记录是否与版本匹配
-    evolution_section = extract_section(content, "## 进化记录")
-    if version not in evolution_section:
-        print(f"❌ 版本 {version} 未在进化记录中更新")
-        return False
-    
-    print(f"✅ 版本更新验证通过: v{version}")
-    return True
-```
-
-#### 6.4 禁止进化内容验证
-```python
-def verify_no_restricted_updates(file_path: str, changes: list) -> bool:
-    """验证没有更新禁止自动进化的内容"""
-    restricted_patterns = [
-        r"\| `{PROJECT_ROOT}`",
-        r"\| `{BACKEND_ROOT}`",
-        r"\| `{FRONTEND_ROOT}`",
-        r"## 命名约定",
-        r"## API 规范"
-    ]
-    
-    for change in changes:
-        for pattern in restricted_patterns:
-            if re.search(pattern, change):
-                print(f"⚠️ 检测到禁止自动更新的内容变更: {pattern}")
-                print("此变更需要人工审核确认")
-                return False
-    
-    return True
-```
-
-#### 6.5 完整进化验证流程
-```python
-def complete_evolution_verification(file_path: str, changes: list) -> dict:
-    """执行完整的进化验证"""
-    results = {
-        "file_structure": verify_file_structure(file_path),
-        "path_variables": verify_path_variables(file_path),
-        "version_update": verify_version_update(file_path),
-        "no_restricted": verify_no_restricted_updates(file_path, changes),
-        "all_passed": False
-    }
-    
-    results["all_passed"] = all([
-        results["file_structure"],
-        results["path_variables"],
-        results["version_update"],
-        results["no_restricted"]
-    ])
-    
-    return results
+如需手动验证（调试用）：
+```bash
+python3 .claude/scripts/verify_standards.py --verbose
 ```
 
 ### 7. 进化失败处理
