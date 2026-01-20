@@ -113,3 +113,41 @@ class WrongQuestion(Base):
     # 关系
     user = relationship("User", back_populates="wrong_questions")
     question = relationship("Question", back_populates="wrong_questions")
+
+
+class SpeedQuizBattle(Base):
+    """抢答对战记录表"""
+    __tablename__ = "speed_quiz_battles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    difficulty = Column(Integer, nullable=False)
+    module = Column(String(20), nullable=False)
+    total_questions = Column(Integer, nullable=False)
+    user_correct = Column(Integer, default=0)
+    ai_correct = Column(Integer, default=0)
+    user_wins = Column(Integer, default=0)
+    ai_wins = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    # 关系
+    details = relationship("SpeedQuizDetail", back_populates="battle")
+
+
+class SpeedQuizDetail(Base):
+    """抢答详细记录表"""
+    __tablename__ = "speed_quiz_details"
+
+    id = Column(Integer, primary_key=True, index=True)
+    battle_id = Column(Integer, ForeignKey("speed_quiz_battles.id"), nullable=False, index=True)
+    question_id = Column(Integer, ForeignKey("questions.id"), nullable=False)
+    user_answer = Column(String(1), nullable=True)
+    user_time = Column(Integer, nullable=True)  # 毫秒
+    ai_answer = Column(String(1), nullable=False)
+    ai_time = Column(Integer, nullable=False)  # 毫秒
+    correct_answer = Column(String(1), nullable=False)
+    winner = Column(String(10), nullable=False)  # user/ai/tie
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # 关系
+    battle = relationship("SpeedQuizBattle", back_populates="details")

@@ -30,6 +30,7 @@ export interface AnswerResult {
   explanation?: string
   score: number
   streak: number
+  totalScore: number
   newAchievements: any[]
   encouragement: string
 }

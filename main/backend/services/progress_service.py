@@ -64,6 +64,7 @@ class ProgressService:
         encouragement = ProgressService._generate_encouragement(is_correct, streak, score)
 
         await db.commit()
+        await db.refresh(user)
 
         return AnswerResponse(
             is_correct=is_correct,
@@ -71,6 +72,7 @@ class ProgressService:
             explanation=question.explanation,
             score=score,
             streak=streak,
+            total_score=user.total_score,
             new_achievements=[AchievementResponse.model_validate(a) for a in new_achievements],
             encouragement=encouragement
         )

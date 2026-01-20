@@ -32,6 +32,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/speed-quiz',
+      name: 'SpeedQuiz',
+      component: () => import('@/pages/SpeedQuiz.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/admin',
       name: 'Admin',
       component: () => import('@/pages/Admin.vue'),

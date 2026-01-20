@@ -150,23 +150,23 @@ function selectDate(date: string | null) {
 </script>
 
 <template>
-  <div class="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl">
-    <!-- 头部：月份导航 -->
-    <div class="flex items-center justify-between mb-6">
+  <div class="bg-white/90 backdrop-blur-sm rounded-3xl p-4 shadow-2xl">
+    <!-- 头部：月份导航 ---->
+    <div class="flex items-center justify-between mb-4">
       <Button
         variant="secondary"
-        class="w-10 h-10 rounded-full p-0 flex items-center justify-center"
+        class="w-8 h-8 rounded-full p-0 flex items-center justify-center text-sm"
         @click="prevMonth"
       >
         ◀
       </Button>
 
       <div class="text-center">
-        <h3 class="text-2xl font-black text-gray-800">
+        <h3 class="text-lg font-black text-gray-800">
           {{ currentYear }} 年 {{ monthNames[currentMonth] }}
         </h3>
         <button
-          class="text-sm text-blue-500 mt-1 hover:text-blue-700 transition font-medium"
+          class="text-xs text-blue-500 hover:text-blue-700 transition font-medium"
           @click="goToToday"
         >
           回到今天
@@ -175,47 +175,47 @@ function selectDate(date: string | null) {
 
       <Button
         variant="secondary"
-        class="w-10 h-10 rounded-full p-0 flex items-center justify-center"
+        class="w-8 h-8 rounded-full p-0 flex items-center justify-center text-sm"
         @click="nextMonth"
       >
         ▶
       </Button>
     </div>
 
-    <!-- 统计信息 -->
-    <div class="grid grid-cols-3 gap-3 mb-6">
-      <div class="bg-gradient-to-br from-blue-400 to-blue-500 rounded-2xl p-4 text-center">
-        <div class="text-3xl font-black text-white">{{ stats.totalDays }}</div>
+    <!-- 统计信息 ---->
+    <div class="grid grid-cols-3 gap-2 mb-4">
+      <div class="bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl p-3 text-center">
+        <div class="text-2xl font-black text-white">{{ stats.totalDays }}</div>
         <div class="text-xs text-white/80">总学习天数</div>
       </div>
-      <div class="bg-gradient-to-br from-green-400 to-green-500 rounded-2xl p-4 text-center">
-        <div class="text-3xl font-black text-white">{{ stats.consecutiveDays }}</div>
+      <div class="bg-gradient-to-br from-green-400 to-green-500 rounded-xl p-3 text-center">
+        <div class="text-2xl font-black text-white">{{ stats.consecutiveDays }}</div>
         <div class="text-xs text-white/80">连续天数</div>
       </div>
-      <div class="bg-gradient-to-br from-purple-400 to-purple-500 rounded-2xl p-4 text-center">
-        <div class="text-3xl font-black text-white">{{ stats.completionRate }}%</div>
+      <div class="bg-gradient-to-br from-purple-400 to-purple-500 rounded-xl p-3 text-center">
+        <div class="text-2xl font-black text-white">{{ stats.completionRate }}%</div>
         <div class="text-xs text-white/80">本月完成</div>
       </div>
     </div>
 
-    <!-- 星期标题 -->
-    <div class="grid grid-cols-7 gap-1 mb-2">
+    <!-- 星期标题 ---->
+    <div class="grid grid-cols-7 gap-1 mb-1">
       <div
         v-for="day in ['日', '一', '二', '三', '四', '五', '六']"
         :key="day"
-        class="text-center text-sm font-bold text-gray-500 py-2"
+        class="text-center text-xs font-bold text-gray-500 py-1"
       >
         {{ day }}
       </div>
     </div>
 
-    <!-- 日历格子 -->
+    <!-- 日历格子 ---->
     <div class="grid grid-cols-7 gap-1">
       <div
         v-for="(item, index) in calendarDays"
         :key="index"
         :class="[
-          'aspect-square flex flex-col items-center justify-center rounded-xl text-sm cursor-pointer transition-all',
+          'aspect-square flex flex-col items-center justify-center rounded-lg text-xs cursor-pointer transition-all',
           !item.date ? 'invisible' : '',
           item.date && item.isToday ? 'ring-2 ring-blue-400' : '',
           item.date && selectedDate === item.date ? 'bg-blue-100' : '',
@@ -226,7 +226,7 @@ function selectDate(date: string | null) {
         <span class="font-bold" :class="item.isStudied ? 'text-green-600' : 'text-gray-700'">
           {{ item.day }}
         </span>
-        <!-- 学习标记 -->
+        <!-- 学习标记 ---->
         <span
           v-if="item.isStudied && item.date"
           class="text-xs mt-0.5"
@@ -236,14 +236,14 @@ function selectDate(date: string | null) {
       </div>
     </div>
 
-    <!-- 图例 -->
-    <div class="flex items-center justify-center gap-4 mt-4 text-sm text-gray-500">
+    <!-- 图例 ---->
+    <div class="flex items-center justify-center gap-3 mt-3 text-xs text-gray-500">
       <div class="flex items-center gap-1">
-        <span class="w-4 h-4 bg-green-100 rounded"></span>
+        <span class="w-3 h-3 bg-green-100 rounded"></span>
         <span>已学习</span>
       </div>
       <div class="flex items-center gap-1">
-        <span class="w-4 h-4 ring-2 ring-blue-400 rounded"></span>
+        <span class="w-3 h-3 ring-2 ring-blue-400 rounded"></span>
         <span>今天</span>
       </div>
     </div>

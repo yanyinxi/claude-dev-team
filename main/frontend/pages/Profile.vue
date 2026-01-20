@@ -149,22 +149,22 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="bg-gradient-to-r from-green-400 to-emerald-400 rounded-3xl p-8 shadow-2xl">
-          <div class="flex items-center gap-4 mb-6">
-            <span class="text-6xl">🎯</span>
-            <h2 class="text-3xl font-black text-white">今日目标</h2>
+        <div class="bg-gradient-to-r from-green-400 to-emerald-400 rounded-3xl p-6 shadow-2xl">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-4xl">🎯</span>
+            <h2 class="text-2xl font-black text-white">今日目标</h2>
           </div>
-          <div class="bg-white/90 rounded-2xl p-6">
-            <div class="flex justify-between items-center mb-4">
-              <span class="text-2xl font-bold text-gray-700">今日完成</span>
-              <span class="text-3xl font-black text-green-600">{{ progressStore.completedToday }} / {{ progressStore.dailyGoal }}</span>
+          <div class="bg-white/90 rounded-2xl p-4">
+            <div class="flex justify-between items-center mb-3">
+              <span class="text-lg font-bold text-gray-700">今日完成</span>
+              <span class="text-2xl font-black text-green-600">{{ progressStore.completedToday }} / {{ progressStore.dailyGoal }}</span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-8 shadow-inner">
+            <div class="w-full bg-gray-200 rounded-full h-6 shadow-inner">
               <div
-                class="bg-gradient-to-r from-green-500 to-emerald-500 h-8 rounded-full transition-all flex items-center justify-end pr-3"
+                class="bg-gradient-to-r from-green-500 to-emerald-500 h-6 rounded-full transition-all flex items-center justify-end pr-2"
                 :style="{ width: `${Math.min((progressStore.completedToday / progressStore.dailyGoal) * 100, 100)}%` }"
               >
-                <span v-if="progressStore.completedToday > 0" class="text-white font-black text-lg">
+                <span v-if="progressStore.completedToday > 0" class="text-white font-black text-sm">
                   {{ Math.round((progressStore.completedToday / progressStore.dailyGoal) * 100) }}%
                 </span>
               </div>

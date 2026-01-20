@@ -115,6 +115,7 @@ class AnswerResponse(BaseModel):
     explanation: Optional[str]
     score: int
     streak: int
+    total_score: int
     new_achievements: List[AchievementResponse] = []
     encouragement: str
 
@@ -177,6 +178,71 @@ class StudyRecordsResponse(BaseModel):
     records: List[StudyRecordResponse]
     total_days: int
     consecutive_days: int
+
+
+# ============ 抢答相关模型 ============
+
+
+class SpeedQuizStartRequest(BaseModel):
+    """开始抢答请求"""
+    difficulty: int = Field(..., ge=1, le=5, description="难度等级 1-5")
+    module: str = Field(..., description="模块: vocabulary/grammar/reading")
+    rounds: int = Field(..., ge=5, le=20, description="题目数量")
+
+
+class SpeedQuizSubmitRequest(BaseModel):
+    """提交答案请求"""
+    battle_id: int = Field(..., description="对战ID")
+    question_id: int = Field(..., description="题目ID")
+    answer: str = Field(..., pattern="^[A-D]$", description="用户答案")
+    answer_time: int = Field(..., ge=0, description="答题时间(毫秒)")
+
+
+class SpeedQuizStartResponse(BaseModel):
+    """开始抢答响应"""
+    battle_id: int
+    question: QuestionResponse
+
+
+class SpeedQuizSubmitResponse(BaseModel):
+    """提交答案响应"""
+    is_correct: bool
+    ai_answer: str
+    ai_time: int
+    correct_answer: str
+    winner: str
+    next_question: Optional[QuestionResponse]
+
+
+class SpeedQuizStatsResponse(BaseModel):
+    """抢答战绩响应"""
+    total_battles: int
+    wins: int
+    losses: int
+    win_rate: float
+    fastest_time: int
+    max_streak: int
+
+
+class SpeedQuizBattleResponse(BaseModel):
+    """抢答对战记录响应"""
+    id: int
+    difficulty: int
+    module: str
+    user_wins: int
+    ai_wins: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class SpeedQuizHistoryResponse(BaseModel):
+    """抢答历史响应"""
+    battles: List[SpeedQuizBattleResponse]
+    total: int
+    page: int
+    page_size: int
 
 
 # ============ 通用响应模型 ============

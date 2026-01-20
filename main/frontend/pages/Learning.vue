@@ -8,12 +8,15 @@ import { questionService } from '@/services/questionService'
 import AnswerOptions from '@/components/learning/AnswerOptions.vue'
 import RewardAnimation from '@/components/learning/RewardAnimation.vue'
 import Button from '@/components/common/Button.vue'
+import SpeedQuiz from './SpeedQuiz.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 const questionStore = useQuestionStore()
 const progressStore = useProgressStore()
 
+const showModeSelection = ref(true)
+const selectedMode = ref('')
 const loading = ref(false)
 const selectedAnswer = ref('')
 const showResult = ref(false)
@@ -46,6 +49,19 @@ async function loadQuestion() {
   }
 }
 
+function selectMode(mode: string) {
+  selectedMode.value = mode
+  showModeSelection.value = false
+  if (mode === 'normal') {
+    loadQuestion()
+  }
+}
+
+function backToModeSelection() {
+  showModeSelection.value = true
+  selectedMode.value = ''
+}
+
 async function handleSubmit() {
   if (!selectedAnswer.value || !questionStore.currentQuestion) return
 
@@ -67,7 +83,7 @@ async function handleSubmit() {
     if (res.isCorrect) {
       progressStore.incrementCorrect()
       progressStore.setStreak(res.streak)
-      userStore.totalScore += res.score
+      userStore.totalScore = res.totalScore
       showReward.value = true
       setTimeout(() => {
         showReward.value = false
@@ -91,7 +107,7 @@ function nextQuestion() {
 }
 
 onMounted(() => {
-  loadQuestion()
+  // Don't load question automatically, wait for mode selection
 })
 </script>
 
@@ -109,6 +125,9 @@ onMounted(() => {
       <!-- 顶部导航栏 - 紧凑设计 -->
       <div class="flex justify-between items-center mb-3 bg-white/90 backdrop-blur-sm rounded-2xl p-3 shadow-xl">
         <div class="flex items-center gap-2">
+          <button v-if="!showModeSelection && selectedMode" @click="backToModeSelection" class="text-2xl hover:scale-110 transition">
+            ⬅️
+          </button>
           <span class="text-2xl">📖</span>
           <h1 class="text-xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             学习模式
@@ -152,8 +171,39 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- 主内容区 - 一屏展示 -->
-      <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
+      <!-- 模式选择界面 -->
+      <div v-if="showModeSelection" class="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl">
+        <h2 class="text-2xl font-black text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          选择学习模式
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- 普通练习 -->
+          <button
+            @click="selectMode('normal')"
+            class="group bg-gradient-to-br from-blue-400 to-cyan-400 rounded-2xl p-6 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
+          >
+            <div class="text-5xl mb-3">📚</div>
+            <h3 class="text-2xl font-black text-white mb-2">普通练习</h3>
+            <p class="text-white/90 text-sm">按照自己的节奏学习，巩固知识点</p>
+          </button>
+
+          <!-- 人机抢答 -->
+          <button
+            @click="selectMode('speed-quiz')"
+            class="group bg-gradient-to-br from-red-400 to-pink-400 rounded-2xl p-6 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
+          >
+            <div class="text-5xl mb-3">🏆</div>
+            <h3 class="text-2xl font-black text-white mb-2">人机抢答</h3>
+            <p class="text-white/90 text-sm">与AI机器人竞速答题，挑战自我</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- 人机抢答模式 -->
+      <SpeedQuiz v-else-if="selectedMode === 'speed-quiz'" />
+
+      <!-- 普通练习模式 -->
+      <div v-else-if="selectedMode === 'normal'" class="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
         <!-- 进度信息 - 紧凑显示 -->
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center gap-2">

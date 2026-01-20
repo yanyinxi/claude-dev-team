@@ -1,272 +1,188 @@
-# Claude Dev Team 项目规范
+# CLAUDE.md
+
+本文件为 Claude Code (claude.ai/code) 在此仓库中工作时提供指导。
 
 ## 项目概述
 
-这是一个**自进化的AI开发团队系统**，使用Claude Code原生能力构建。系统通过8个专业AI代理协作完成软件开发全流程，并能从每次任务中学习和改进。
+Claude Dev Team 是基于 Claude Code 原生能力构建的 AI 开发团队协作系统。通过 8 个专业 AI 代理和 6 个可复用技能，模拟真实软件开发团队的角色分工和协作流程，并配备自进化引擎从执行结果中持续学习。
 
-## 核心原则
+## 架构设计
 
-1. **Agent优先**: 所有复杂任务必须委托给专业agent，不要在主会话直接实现大量代码
-2. **记录优先**: 每个任务完成后必须调用Evolver记录经验，持续积累系统智慧
-3. **测试优先**: 代码实现后立即编写测试，确保质量
-4. **协作优先**: 跨领域任务使用orchestrator协调多个agent并行工作
+### Agent 系统 (.claude/agents/)
 
-## 技术栈约束
+8 个专业代理通过 Task 工具协同工作：
 
-### 前端技术栈
-- **框架**: React 18+
-- **语言**: TypeScript 5+
-- **测试**: Jest
-- **代码风格**: ESLint + Prettier (2空格缩进)
-- **构建**: Vite
+- **orchestrator**: 主协调器，管理完整开发生命周期，支持动态任务分配和通过 `background_task()` 实现并行执行
+- **product-manager**: 需求分析、PRD 生成、任务拆分
+- **tech-lead**: 架构设计、技术选型、API 规范
+- **frontend-developer**: React/Vue 组件、前端测试
+- **backend-developer**: API 实现、数据库操作、业务逻辑
+- **test**: 测试计划、自动化测试、测试报告
+- **code-reviewer**: 代码质量、安全性、最佳实践审查
+- **evolver**: 自进化引擎，分析任务结果并更新代理配置
+- **progress-viewer**: 任务进度跟踪和状态报告
 
-### 后端技术栈
-- **运行时**: 
-- **框架**: FastAPI，Language，
-- **测试**: Mocha + Chai
-- **数据库**: SQLite3 (开发，生产)
-- **代码风格**: ESLint + Prettier (2空格缩进)
+### Skills 系统 (.claude/skills/)
 
-### 通用规范
-- **Git提交**: 使用语义化提交信息 (feat/fix/docs/refactor/test)
-- **分支策略**: main (生产), develop (开发), feature/* (功能分支)
-- **代码审查**: 所有PR必须经过code-reviewer审查
+6 个可复用技能通过 Skill 工具调用：
 
-## 构建命令
+- `requirement-analysis`: 需求分析和 PRD 生成
+- `architecture-design`: 系统架构设计
+- `api-design`: RESTful API 设计
+- `testing`: 测试规划和执行
+- `code-quality`: 代码质量审查
+- `task-distribution`: 任务拆分和分配
 
-### 全局命令
-```bash
-# 安装依赖
-npm install
+### 自进化系统
 
-# 运行所有测试
-npm test
+任务完成后，代理自动调用 evolver 代理执行：
+1. 分析执行结果
+2. 提取最佳实践和经验教训
+3. 使用 Write/Edit 工具更新代理配置文件
+4. 在代理 markdown 文件的 "📈 进化记录" 章节追加进化记录
 
-# 代码格式化
-npm run lint
-npm run lint:fix
+进化记录格式：
+```markdown
+## 📈 进化记录（自动生成）
+
+### 基于 [任务类型] 的学习
+
+**执行时间**: YYYY-MM-DD HH:MM
+
+**新增最佳实践**:
+- **洞察标题**: 具体描述
+  - 适用场景：...
+  - 注意事项：...
 ```
 
-### 示例项目命令 (examples/*)
-```bash
-# 进入示例目录
-cd examples/todo_app
+## 开发工作流
 
-# 安装依赖
-npm install
-
-# 启动开发服务器
-npm run dev
-
-# 运行测试
-npm test
-```
-
-## Agent使用规范
-
-### 标准工作流
+### 完整功能开发流程
 
 ```
 用户需求
     ↓
-orchestrator (协调整个流程)
+product-manager (PRD)
     ↓
-product-manager (需求分析 → 生成PRD)
+tech-lead (架构设计)
     ↓
-tech-lead (技术设计 → 架构方案 + API设计)
+并行开发 (前端 + 后端通过 background_task())
     ↓
-frontend-developer / backend-developer (并行开发)
+test (测试)
     ↓
-test (测试计划 + 自动化测试)
-    ↓
-code-reviewer (代码审查 + 安全检查)
+code-reviewer (审查)
     ↓
 orchestrator (最终决策)
     ↓
-evolver (系统进化 - 记录最佳实践) ⭐
+evolver (系统进化)
 ```
 
-### Agent职责划分
+### 并行执行
 
-| Agent | 职责 | 触发场景 |
-|-------|------|---------|
-| **orchestrator** | 流程协调、任务分配 | 复杂的多阶段任务 |
-| **product-manager** | 需求分析、PRD生成 | 需要明确产品需求时 |
-| **tech-lead** | 架构设计、技术选型、API设计 | 需要技术方案时 |
-| **frontend-developer** | 前端组件、页面、测试 | 实现UI/前端逻辑 |
-| **backend-developer** | API实现、数据库、业务逻辑 | 实现后端服务 |
-| **test** | 测试计划、自动化测试、报告 | 质量保证环节 |
-| **code-reviewer** | 代码审查、安全检查、最佳实践 | PR审查、安全审计 |
-| **evolver** | 系统进化、经验记录 | 每个任务结束时 |
+orchestrator 使用 `background_task()` 实现代理并行执行：
 
-## 文档约定
+```python
+# 启动并行任务
+frontend_task = background_task(agent="frontend-developer", prompt="...")
+backend_task = background_task(agent="backend-developer", prompt="...")
 
-### 文档存放位置
-
-```
-main/docs/
-├── prds/              # 产品需求文档
-├── tech_designs/      # 技术设计文档
-├── api/               # API文档 (OpenAPI 3.0)
-├── test_reports/      # 测试报告
-├── reviews/           # 代码审查报告
-└── task_distribution/ # 任务分配文档
+# 等待完成
+frontend_result = background_output(task_id=frontend_task)
+backend_result = background_output(task_id=backend_task)
 ```
 
-### 文档命名规范
+## 常用命令
 
-- PRD: `prds/{feature-name}.md`
-- 技术设计: `tech_designs/{feature-name}.md`
-- API文档: `api/{feature-name}.yaml`
-- 测试报告: `test_reports/{feature-name}.md`
+### 示例项目
 
-## 代码规范
+`examples/todo_app/` 目录包含完整的全栈示例：
 
-### TypeScript/JavaScript
+```bash
+# 安装依赖
+cd examples/todo_app
+npm install
 
-```typescript
-// ✅ 好的实践
-export const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle }) => {
-  const handleClick = useCallback(() => {
-    onToggle(todo.id);
-  }, [todo.id, onToggle]);
-  
-  return (
-    <div className="todo-item">
-      <input type="checkbox" checked={todo.completed} onChange={handleClick} />
-      <span>{todo.text}</span>
-    </div>
-  );
-};
+# 初始化数据库
+npm run init-db
 
-// ❌ 避免的实践
-export const TodoItem = (props) => {  // 缺少类型
-  return <div onClick={() => props.onToggle(props.todo.id)}>  // 内联函数
-    <input type="checkbox" checked={props.todo.completed} />
-    <span>{props.todo.text}</span>
-  </div>
-}
+# 启动服务器
+npm start
+
+# 运行所有测试
+npm test
+
+# 仅运行后端测试
+npm run test:backend
+
+# 仅运行前端测试
+npm run test:frontend
+
+# 测试监听模式
+npm run test:watch
 ```
 
-### API设计规范
+### Agent 健康检查
 
-遵循RESTful设计原则:
-
-```
-GET    /api/todos        # 列出所有
-GET    /api/todos/:id    # 获取单个
-POST   /api/todos        # 创建
-PUT    /api/todos/:id    # 更新
-DELETE /api/todos/:id    # 删除
+```bash
+# 检查代理配置健康状态
+python3 .claude/scripts/verify_standards.py --verbose
 ```
 
-响应格式:
-```json
-{
-  "success": true,
-  "data": { /* 实际数据 */ },
-  "error": null
-}
+## 配置说明
+
+### 权限配置 (.claude/settings.json)
+
+- **allow**: 自动批准的操作（npm run、git status/diff/log、Read/Edit/Grep/Glob、Task、TodoWrite）
+- **ask**: 需要用户确认（git add/commit/push、rm、docker）
+- **deny**: 禁止的操作（curl、wget、.git/**、.env 文件）
+- **defaultMode**: `acceptEdits` - 自动接受文件编辑
+
+### Hooks 配置 (.claude/hooks/hooks.json)
+
+自动化质量门禁：
+- **PostToolUse**: Write/Edit 后验证 project_standards.md 和 agent 文件
+- **Stop**: 任务完成时提醒调用 evolver
+
+### Git 归属标注
+
+所有 AI 生成的提交自动标记：
+- Commit: `🤖 Generated by Claude Dev Team AI System`
+- PR: `Generated with Claude Dev Team - AI collaboration framework with 8 specialized agents and self-evolution capability`
+
+## Agent 调用方式
+
+### 自动调用（推荐）
+
+Claude 根据请求关键词自动选择合适的代理：
+- "需求分析" / "PRD" → product-manager
+- "架构设计" / "API 设计" → tech-lead
+- "前端" / "UI" / "组件" → frontend-developer
+- "后端" / "API" / "数据库" → backend-developer
+- "测试" → test
+- "代码审查" / "PR 审查" → code-reviewer
+- "协调" / "整个项目" → orchestrator
+- "进化" / "学习" / "改进" → evolver
+
+### 手动指定
+
+在请求中明确指定代理：
+```
+使用 backend-developer 代理实现用户认证 API
+使用 code-reviewer 代理审查代码
 ```
 
-### 测试规范
+## 核心原则
 
-- **单元测试**: 覆盖率 > 80%
-- **集成测试**: 覆盖关键业务流程
-- **命名**: `describe` + `it` 清晰描述测试场景
+1. **使用 Task 工具调用代理** - 永远不要直接实现代理逻辑
+2. **使用 background_task() 并行执行** - 多个代理同时工作
+3. **信任进化系统** - 代理在每次任务后学习和改进
+4. **遵循权限模型** - 尊重 settings.json 中的 allow/ask/deny 规则
+5. **维护进化记录** - 追加学习内容到代理文件，永远不要覆盖现有记录
+6. **使用 TodoWrite 跟踪进度** - 让用户了解任务状态
 
-```javascript
-describe('TodoList Component', () => {
-  it('should render all todos', () => {
-    // 测试实现
-  });
-  
-  it('should toggle todo completion when clicked', () => {
-    // 测试实现
-  });
-});
-```
+## 文件结构约定
 
-## 禁止行为
-
-- ❌ **不要在主会话中直接写大量代码** - 应该委托给相应的developer agent
-- ❌ **不要跳过测试环节** - 代码必须有对应的测试
-- ❌ **不要忘记调用Evolver** - 每个任务结束必须记录经验
-- ❌ **不要修改.git目录** - 保护版本控制完整性
-- ❌ **不要提交敏感信息** - .env文件、密钥必须在.gitignore中
-- ❌ **不要使用危险命令** - curl/wget需要明确授权
-
-## 进化系统说明
-
-### 工作原理
-
-每次任务完成后，系统自动调用Evolver agent分析任务结果并更新agent配置:
-
-```
-任务执行完成
-    ↓
-Evolver分析执行结果
-    ↓
-提取最佳实践和教训
-    ↓
-更新对应Agent的配置文件 (追加到"📈 进化记录"章节)
-    ↓
-下次任务自动应用新学到的经验
-```
-
-### 查看进化历史
-
-每个agent文件末尾都包含"📈 进化记录"章节，记录了:
-- 执行时间
-- 任务类型
-- 新增最佳实践
-- 关键洞察
-- 注意事项
-
-示例:
-```markdown
-## 📈 进化记录（自动生成）
-
-### 基于 [用户登录功能开发] 的学习
-
-**执行时间**: 2026-01-18 17:30
-
-**新增最佳实践**:
-- **JWT Token验证**: 使用bcrypt加密密码，Token过期时间设置为24小时
-  - 适用场景：所有需要身份认证的API
-  - 注意事项：必须在环境变量中配置JWT_SECRET
-```
-
-## 常用Slash命令
-
-系统提供的快捷命令 (如果已配置):
-
-- `/agents` - 查看所有可用代理
-- `/config` - 打开配置界面
-- `/cost` - 查看Token使用成本
-- `/export` - 导出会话记录
-- `/review` - 快速代码审查
-
-## 性能要求
-
-- **前端首屏加载**: < 3秒
-- **API响应时间**: < 500ms (p95)
-- **测试执行时间**: < 30秒 (单元测试套件)
-- **构建时间**: < 2分钟
-
-## 安全要求
-
-- 所有API必须进行身份验证
-- 敏感数据必须加密存储
-- 定期运行 `npm audit` 检查依赖漏洞
-- 代码审查必须包含安全检查清单
-
-## 相关文档
-
-- [Claude Code 官方文档](https://code.claude.com/docs/zh-CN)
-- [Agent配置说明](.claude/README.md)
-- [项目示例](examples/README.md)
-
----
-
-**记住**: 这个文件是项目的"单一真相源"，所有agent在工作时都会参考这里的规范。保持更新！
+- Agent 配置：`.claude/agents/*.md` 带 YAML frontmatter
+- Skills：`.claude/skills/*/SKILL.md` 带 YAML frontmatter
+- 进化记录：追加到代理文件的 "📈 进化记录" 章节
+- 示例：`examples/*/` 包含独立的 package.json 和测试

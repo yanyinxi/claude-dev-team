@@ -1,0 +1,221 @@
+# 人机抢答功能集成完成报告
+
+## 修复内容
+
+### 1. 修复 404 路由错误 ✅
+
+**问题**: API 请求路径为 `/api/v1/api/speed-quiz/start`，导致 404 错误
+
+**原因**: 路由前缀重复
+- `speed_quiz_router.py` 中定义了 `prefix="/api/speed-quiz"`
+- `main.py` 中注册时没有添加 `/api/v1` 前缀
+
+**解决方案**:
+
+**文件**: `main/backend/api/routes/speed_quiz_router.py:19`
+```python
+# 修改前
+router = APIRouter(prefix="/api/speed-quiz", tags=["speed-quiz"])
+
+# 修改后
+router = APIRouter(prefix="/speed-quiz", tags=["speed-quiz"])
+```
+
+**文件**: `main/backend/main.py:51`
+```python
+# 修改前
+app.include_router(speed_quiz_router.router, tags=["抢答"])
+
+# 修改后
+app.include_router(speed_quiz_router.router, prefix="/api/v1", tags=["抢答"])
+```
+
+**验证结果**:
+```
+✅ /api/v1/speed-quiz/start
+✅ /api/v1/speed-quiz/submit
+✅ /api/v1/speed-quiz/stats
+✅ /api/v1/speed-quiz/history
+```
+
+---
+
+### 2. 集成到学习页面 ✅
+
+**需求**: 将人机抢答作为学习模式选项，而不是独立路由
+
+**实现方案**:
+
+#### 前端修改
+
+**文件**: `main/frontend/pages/Learning.vue`
+
+**新增功能**:
+1. **模式选择界面** - 用户进入学习页面后首先看到两个选项：
+   - 📚 普通练习 - 按自己节奏学习
+   - 🏆 人机抢答 - 与 AI 竞速答题
+
+2. **状态管理**:
+   ```typescript
+   const showModeSelection = ref(true)  // 是否显示模式选择
+   const selectedMode = ref('')         // 当前选择的模式
+   ```
+
+3. **模式切换函数**:
+   ```typescript
+   function selectMode(mode: string) {
+     selectedMode.value = mode
+     showModeSelection.value = false
+     if (mode === 'normal') {
+       loadQuestion()  // 普通模式加载题目
+     }
+   }
+
+   function backToModeSelection() {
+     showModeSelection.value = true
+     selectedMode.value = ''
+   }
+   ```
+
+4. **组件嵌入**:
+   ```vue
+   <!-- 模式选择界面 -->
+   <div v-if="showModeSelection">...</div>
+
+   <!-- 人机抢答模式 -->
+   <SpeedQuiz v-else-if="selectedMode === 'speed-quiz'" />
+
+   <!-- 普通练习模式 -->
+   <div v-else-if="selectedMode === 'normal'">...</div>
+   ```
+
+5. **返回按钮** - 顶部导航栏添加返回按钮，可以回到模式选择
+
+**文件**: `main/frontend/pages/SpeedQuiz.vue`
+
+**样式调整**:
+- 移除全屏布局和独立头部
+- 更新背景样式为 `bg-white/90 backdrop-blur-sm` 以适配嵌入环境
+- 保持所有功能逻辑不变
+
+---
+
+## 用户体验流程
+
+```
+登录系统
+    ↓
+进入学习页面
+    ↓
+【模式选择界面】
+    ├─ 选择"普通练习" → 传统答题模式
+    └─ 选择"人机抢答" → AI 竞速模式
+         ↓
+    【人机抢答界面】
+    ├─ 选择难度/模块/轮数
+    ├─ 开始抢答
+    ├─ 实时对战
+    └─ 查看战绩
+         ↓
+    点击返回按钮 → 回到模式选择
+```
+
+---
+
+## 技术细节
+
+### API 路由结构
+```
+/api/v1/
+  ├─ /auth/*          (认证)
+  ├─ /questions/*     (题目)
+  ├─ /answers/*       (答题)
+  ├─ /progress/*      (进度)
+  ├─ /admin/*         (管理员)
+  └─ /speed-quiz/*    (抢答) ✨ 新增
+      ├─ /start       (开始抢答)
+      ├─ /submit      (提交答案)
+      ├─ /stats       (获取战绩)
+      └─ /history     (历史记录)
+```
+
+### 前端组件结构
+```
+Learning.vue (学习页面)
+  ├─ 模式选择界面
+  │   ├─ 普通练习卡片
+  │   └─ 人机抢答卡片
+  ├─ SpeedQuiz.vue (嵌入组件)
+  └─ 普通练习界面 (原有功能)
+```
+
+---
+
+## 测试验证
+
+### 后端验证
+```bash
+cd main/backend
+python -c "from api.routes import speed_quiz_router; print(speed_quiz_router.router.prefix)"
+# 输出: /speed-quiz ✅
+
+python -c "import main; routes = [r.path for r in main.app.routes if 'speed' in r.path]; print(routes)"
+# 输出: ['/api/v1/speed-quiz/start', '/api/v1/speed-quiz/submit', ...] ✅
+```
+
+### 前端验证
+```bash
+cd main/frontend
+grep -n "selectMode\|SpeedQuiz\|showModeSelection" pages/Learning.vue
+# 确认模式选择功能已集成 ✅
+```
+
+---
+
+## 文件修改清单
+
+### 修改的文件
+1. `main/backend/api/routes/speed_quiz_router.py` - 修改路由前缀
+2. `main/backend/main.py` - 添加 /api/v1 前缀
+3. `main/frontend/pages/Learning.vue` - 集成模式选择
+4. `main/frontend/pages/SpeedQuiz.vue` - 调整样式适配嵌入
+
+### 新增的文件
+- `main/docs/implementation/speed-quiz-integration.md` (本文档)
+
+---
+
+## 部署说明
+
+### 1. 重启后端服务
+```bash
+cd main/backend
+python main.py
+```
+
+### 2. 重启前端服务
+```bash
+cd main/frontend
+npm run dev
+```
+
+### 3. 访问测试
+1. 登录系统
+2. 进入学习页面 (自动显示模式选择)
+3. 选择"人机抢答"
+4. 测试完整流程
+
+---
+
+## 完成状态
+
+✅ 修复 404 路由错误
+✅ 集成到学习页面作为模式选项
+✅ 添加返回按钮
+✅ 保持原有功能完整性
+✅ 更新文档
+
+**完成时间**: 2026-01-20
+**开发方式**: Claude Dev Team AI System
+
+🤖 Generated by Claude Dev Team AI System
