@@ -1,6 +1,7 @@
 """
 应用配置管理
 """
+
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -8,8 +9,8 @@ from typing import Optional
 class Settings(BaseSettings):
     """应用配置"""
 
-    # 数据库配置
-    DATABASE_URL: str = "sqlite+aiosqlite:///./ket_exam.db"
+    # 数据库配置 - 使用绝对路径
+    DATABASE_URL: str = "sqlite+aiosqlite:////Users/yanyinxi/工作/code/Java/claudecode/claude-dev-team/ket_exam.db"
 
     # JWT配置
     SECRET_KEY: str = "your-secret-key-change-in-production"

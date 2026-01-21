@@ -24,7 +24,8 @@
       "mcp__chrome-devtools__wait_for",
       "WebFetch(domain:github.com)",
       "WebSearch",
-      "WebFetch(domain:digma.ai)"
+      "WebFetch(domain:digma.ai)",
+      "WebFetch(domain:lakshminp.substack.com)"
     ]
   },
   "disabledMcpjsonServers": [

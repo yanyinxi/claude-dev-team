@@ -8,7 +8,16 @@ from contextlib import asynccontextmanager
 
 from core.config import settings
 from core.database import init_db
-from api.routes import auth_router, question_router, answer_router, progress_router, admin_router, speed_quiz_router
+from api.routes import (
+    auth_router,
+    question_router,
+    answer_router,
+    progress_router,
+    admin_router,
+    speed_quiz_router,
+)
+# Lazy import to avoid circular import
+# from tasks.ai_digest import router as ai_digest_router
 
 
 @asynccontextmanager
@@ -49,6 +58,10 @@ app.include_router(answer_router.router, prefix="/api/v1", tags=["答题"])
 app.include_router(progress_router.router, prefix="/api/v1", tags=["进度"])
 app.include_router(admin_router.router, prefix="/api/v1", tags=["管理员"])
 app.include_router(speed_quiz_router.router, prefix="/api/v1", tags=["抢答"])
+# Lazy import to avoid circular import
+from tasks.ai_digest.router import router as ai_digest_router
+
+app.include_router(ai_digest_router, tags=["AI 日报"])
 
 
 @app.get("/")

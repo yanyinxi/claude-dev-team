@@ -6,7 +6,9 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/login'
+      name: 'Home',
+      component: () => import('@/pages/Home.vue'),
+      meta: { requiresAuth: false }  // 首页不需要登录
     },
     {
       path: '/login',
@@ -42,15 +44,29 @@ const router = createRouter({
       name: 'Admin',
       component: () => import('@/pages/Admin.vue'),
       meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/ai-digest',
+      name: 'AiDigest',
+      component: () => import('@/pages/AiDigestPage.vue'),
+      meta: { requiresAuth: false }
+    },
+    {
+      path: '/ai-digest/:date',
+      name: 'AiDigestDetail',
+      component: () => import('@/pages/AiDigestPage.vue'),
+      meta: { requiresAuth: false }
     }
   ]
 })
 
 router.beforeEach((to, _from, next) => {
-  // 核心注释：路由守卫，确保已登录用户才能访问受保护页面
+  // 路由守卫：需要登录的页面如果未登录则跳转到登录页
   const userStore = useUserStore()
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
     next('/login')
+  } else if (to.path === '/login' && userStore.isLoggedIn) {
+    next('/learning')
   } else {
     next()
   }

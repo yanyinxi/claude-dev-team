@@ -7,6 +7,7 @@ from typing import AsyncGenerator
 
 from core.config import settings
 from models.db import Base, User, Question, Achievement
+from tasks.ai_digest.models import AiDigest
 
 
 # 创建异步引擎
