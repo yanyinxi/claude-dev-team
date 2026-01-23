@@ -43,7 +43,8 @@
 ├── rules/               # ⭐ 新增：策略规则（学习成果）
 │   ├── frontend.md
 │   ├── backend.md
-│   └── collaboration.md
+│   ├── collaboration.md
+│   └── system-design.md      # ⭐ 新增：系统设计最佳实践
 └── settings.json        # 配置文件（含 Hook 配置）
 ```
 

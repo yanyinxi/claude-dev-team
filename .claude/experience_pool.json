@@ -19,5 +19,13 @@
     "reward": 7.5,
     "result_preview": "编写了单元测试",
     "timestamp": "2026-01-23T12:00:00"
+  },
+  {
+    "agent": "unknown",
+    "reward": 0.0,
+    "timestamp": "2026-01-23T18:43:44.279379",
+    "prompt_hash": 800019,
+    "result_preview": "",
+    "strategy_keyword": "user-management"
   }
 ]

@@ -30,6 +30,14 @@ FORBIDDEN_ROOT_PATHS = [
     r"^frontend/",        # 根目录 frontend/
 ]
 
+# 禁止的嵌套路径模式（防止错误的目录结构）
+FORBIDDEN_NESTED_PATHS = [
+    r"^main/backend/main/",   # 禁止 main/backend/main/
+    r"^main/frontend/main/",  # 禁止 main/frontend/main/
+    r"^main/backend/docs/",   # 禁止 main/backend/docs/（应该用 main/docs/）
+    r"^main/frontend/docs/",  # 禁止 main/frontend/docs/（应该用 main/docs/）
+]
+
 # 允许的路径模式
 ALLOWED_PATHS = [
     r"^main/backend/",
@@ -94,6 +102,24 @@ def validate_path(file_path: str, tool_name: str) -> Optional[Dict[str, Any]]:
                          f"  - 测试文件 → main/tests/\n"
                          f"  - 文档文件 → main/docs/\n"
                          f"  - 脚本文件 → main/backend/scripts/\n\n"
+                         f"请参考 CLAUDE.md 中的目录结构约束。"
+            }
+
+    # 检查是否在禁止的嵌套路径
+    for pattern in FORBIDDEN_NESTED_PATHS:
+        if re.match(pattern, file_path):
+            return {
+                "decision": "block",
+                "reason": f"❌ 禁止创建 {file_path}！\n\n"
+                         f"🚫 错误的目录结构：\n"
+                         f"  - main/backend/main/     ❌ 错误！\n"
+                         f"  - main/backend/docs/     ❌ 错误！\n"
+                         f"  - main/frontend/main/    ❌ 错误！\n"
+                         f"  - main/frontend/docs/    ❌ 错误！\n\n"
+                         f"✅ 正确的目录结构：\n"
+                         f"  - main/docs/             ✅ 所有文档统一放这里\n"
+                         f"  - main/backend/          ✅ 后端代码\n"
+                         f"  - main/frontend/         ✅ 前端代码\n\n"
                          f"请参考 CLAUDE.md 中的目录结构约束。"
             }
 
