@@ -57,9 +57,29 @@
             "timeout": 30
           }
         ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/reward_evaluator.py",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/path_validator.py",
+            "timeout": 5
+          }
+        ]
+      },
       {
         "matcher": "Bash",
         "hooks": [
@@ -86,9 +106,29 @@
       {
         "hooks": [
           {
+            "type": "prompt",
+            "prompt": "分析任务执行结果，判断是否需要调用 evolver 代理进行系统进化。\n\n需要进化的情况：\n1. 实现了新功能或重构\n2. 发现了可复用的最佳实践\n3. 解决了复杂问题\n4. 有值得记录的经验教训\n5. 修复了重要 Bug 并有经验可总结\n\n不需要进化的情况：\n1. 简单的文档更新\n2. 配置调整\n3. 代码格式化\n4. 简单的变量重命名\n\n任务结果：$ARGUMENTS\n\n如果需要进化，返回 JSON: {\"continue\": true, \"stopReason\": \"需要进化系统：[简短原因]\"}\n如果不需要，返回 JSON: {\"continue\": false, \"systemMessage\": \"💡 任务完成\"}"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "你是 AlphaZero 策略评估器。分析以下子代理任务执行结果，提取学习洞察。\n\n任务信息：\n- Agent: $AGENT_NAME\n- 结果: $RESULT\n\n请分析并提取：\n\n1. **最佳实践** (Best Practices)：\n   - 哪些做法值得复用？\n   - 有什么创新点？\n\n2. **改进建议** (Improvements)：\n   - 哪些地方可以优化？\n   - 有什么教训？\n\n3. **协作洞察** (Collaboration)：\n   - 团队协作是否顺畅？\n   - 沟通是否有效？\n\n4. **效率洞察** (Efficiency)：\n   - 任务完成是否高效？\n   - 有无性能问题？\n\n5. **奖励评分** (0-10分)：\n   - 考虑：完成度、质量、创新性、可复用性\n\n返回 JSON 格式：\n{\n  \"reward\": 8.5,\n  \"strategy_keyword\": \"frontend/backend/testing/architecture/product/review/collaboration\",\n  \"insights\": [\n    {\"category\": \"best_practice\", \"description\": \"...\"},\n    {\"category\": \"improvement\", \"description\": \"...\"},\n    {\"category\": \"collaboration\", \"description\": \"...\"},\n    {\"category\": \"efficiency\", \"description\": \"...\"}\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
             "type": "command",
-            "command": "echo '\n💡 任务完成提示：\n如果本次任务涉及代码实现、问题解决或新功能开发，且有价值的经验可以记录，\n可以考虑调用 evolver 代理进行系统进化。\n'",
-            "timeout": 5
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/save_learning_history.py",
+            "timeout": 30
           }
         ]
       }

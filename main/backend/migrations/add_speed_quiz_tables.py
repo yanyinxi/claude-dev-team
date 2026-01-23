@@ -6,8 +6,9 @@ import os
 
 def migrate():
     """执行迁移"""
-    # 连接数据库
-    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'ket_exam.db')
+    # 连接数据库 - 使用项目根目录的相对路径
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    db_path = os.path.join(project_root, 'main', 'backend', 'db', 'ket_exam.db')
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 

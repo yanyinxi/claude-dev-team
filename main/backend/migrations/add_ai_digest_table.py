@@ -54,7 +54,7 @@ if __name__ == "__main__":
     from sqlalchemy import create_engine
     import os
 
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///main/backend/db/test.db")
     engine = create_engine(DATABASE_URL)
 
     print("执行迁移...")

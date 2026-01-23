@@ -5,12 +5,14 @@
  * 功能：
  * - 显示 AI 日报卡片
  * - 显示学习入口
+ * - 显示 AlphaZero 监控入口
  * - 显示其他功能入口
  */
 
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import AiDigestCard from '@/components/AiDigestCard.vue'
+import SurpriseButton from '@/components/SurpriseButton.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -34,6 +36,11 @@ const goToSpeedQuiz = () => {
 const goToProfile = () => {
   router.push('/profile')
 }
+
+// 导航到 AlphaZero 监控
+const goToMonitor = () => {
+  router.push('/monitor')
+}
 </script>
 
 <template>
@@ -45,6 +52,9 @@ const goToProfile = () => {
         <nav class="nav">
           <router-link to="/learning" class="nav-link">学习</router-link>
           <router-link to="/ai-digest" class="nav-link">AI 日报</router-link>
+          <router-link to="/monitor" class="nav-link monitor-link">
+            🤖 AlphaZero
+          </router-link>
           <router-link to="/profile" class="nav-link">个人中心</router-link>
         </nav>
       </div>
@@ -57,6 +67,26 @@ const goToProfile = () => {
         <section class="welcome-section">
           <h2 class="welcome-title">欢迎回来，{{ userStore.user?.nickname || '同学' }}！</h2>
           <p class="welcome-subtitle">继续你的学习之旅</p>
+          <!-- 惊喜按钮 -->
+          <div class="surprise-button-wrapper">
+            <SurpriseButton />
+          </div>
+        </section>
+
+        <!-- AlphaZero 监控卡片 -->
+        <section class="monitor-section">
+          <div class="monitor-card" @click="goToMonitor">
+            <div class="monitor-content">
+              <div class="monitor-icon">🧠</div>
+              <div class="monitor-info">
+                <h3 class="monitor-title">🤖 AlphaZero 自博弈学习系统</h3>
+                <p class="monitor-description">
+                  智能策略选择 + 多变体评估 + 持续进化 · 让 AI 团队越用越聪明
+                </p>
+              </div>
+            </div>
+            <div class="monitor-arrow">→</div>
+          </div>
         </section>
 
         <!-- AI 日报卡片 -->
@@ -142,10 +172,19 @@ const goToProfile = () => {
   font-size: 16px;
   font-weight: 500;
   transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .nav-link:hover {
   opacity: 0.8;
+}
+
+.monitor-link {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  padding: 8px 16px;
+  border-radius: 20px;
 }
 
 /* 主内容区 */
@@ -170,6 +209,67 @@ const goToProfile = () => {
   font-size: 18px;
   color: rgba(255, 255, 255, 0.9);
   margin: 0;
+}
+
+/* 惊喜按钮容器 */
+.surprise-button-wrapper {
+  margin-top: 24px;
+}
+
+/* AlphaZero 监控卡片 */
+.monitor-section {
+  margin-bottom: 32px;
+}
+
+.monitor-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  border: 2px solid rgba(147, 51, 234, 0.5);
+  border-radius: 16px;
+  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.monitor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(147, 51, 234, 0.3);
+  border-color: rgba(147, 51, 234, 0.8);
+}
+
+.monitor-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.monitor-icon {
+  font-size: 48px;
+}
+
+.monitor-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 8px 0;
+}
+
+.monitor-description {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.monitor-arrow {
+  font-size: 32px;
+  color: rgba(147, 51, 234, 0.8);
+  transition: transform 0.3s ease;
+}
+
+.monitor-card:hover .monitor-arrow {
+  transform: translateX(8px);
 }
 
 /* AI 日报区域 */
@@ -241,6 +341,20 @@ const goToProfile = () => {
 
   .welcome-title {
     font-size: 28px;
+  }
+
+  .monitor-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .monitor-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .monitor-arrow {
+    margin-top: 16px;
   }
 
   .features-grid {

@@ -8,16 +8,6 @@ from contextlib import asynccontextmanager
 
 from core.config import settings
 from core.database import init_db
-from api.routes import (
-    auth_router,
-    question_router,
-    answer_router,
-    progress_router,
-    admin_router,
-    speed_quiz_router,
-)
-# Lazy import to avoid circular import
-# from tasks.ai_digest import router as ai_digest_router
 
 
 @asynccontextmanager
@@ -51,16 +41,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 注册路由
-app.include_router(auth_router.router, prefix="/api/v1", tags=["认证"])
-app.include_router(question_router.router, prefix="/api/v1", tags=["题目"])
-app.include_router(answer_router.router, prefix="/api/v1", tags=["答题"])
-app.include_router(progress_router.router, prefix="/api/v1", tags=["进度"])
-app.include_router(admin_router.router, prefix="/api/v1", tags=["管理员"])
-app.include_router(speed_quiz_router.router, prefix="/api/v1", tags=["抢答"])
-# Lazy import to avoid circular import
+
+# 注册路由 - 使用延迟导入避免循环依赖
+from api.routes.auth_router import router as auth_router
+from api.routes.question_router import router as question_router
+from api.routes.answer_router import router as answer_router
+from api.routes.progress_router import router as progress_router
+from api.routes.admin_router import router as admin_router
+from api.routes.speed_quiz_router import router as speed_quiz_router
+from api.routes.monitor_router import router as monitor_router
 from tasks.ai_digest.router import router as ai_digest_router
 
+app.include_router(auth_router, prefix="/api/v1", tags=["认证"])
+app.include_router(question_router, prefix="/api/v1", tags=["题目"])
+app.include_router(answer_router, prefix="/api/v1", tags=["答题"])
+app.include_router(progress_router, prefix="/api/v1", tags=["进度"])
+app.include_router(admin_router, prefix="/api/v1", tags=["管理员"])
+app.include_router(speed_quiz_router, prefix="/api/v1", tags=["抢答"])
+app.include_router(monitor_router, prefix="/api/v1", tags=["监控"])
 app.include_router(ai_digest_router, tags=["AI 日报"])
 
 

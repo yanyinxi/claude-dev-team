@@ -56,6 +56,13 @@ const router = createRouter({
       name: 'AiDigestDetail',
       component: () => import('@/pages/AiDigestPage.vue'),
       meta: { requiresAuth: false }
+    },
+    // AlphaZero 监控系统
+    {
+      path: '/monitor',
+      name: 'Monitor',
+      component: () => import('@/pages/Monitor.vue'),
+      meta: { requiresAuth: false }  // 监控页面不需要登录
     }
   ]
 })

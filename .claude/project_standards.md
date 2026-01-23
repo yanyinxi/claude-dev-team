@@ -119,9 +119,13 @@ description: 项目技术标准索引，定义项目的技术栈规范、代码�
 
 | 变量 | 值 (当前项目) | 说明 |
 |------|--------------|------|
-| `{TESTS_ROOT}` | `main/tests/` | 测试根目录 |
+| `{TESTS_ROOT}` | `main/tests/` | **测试根目录（唯一允许的测试位置）** |
 | `{BACKEND_TESTS}` | `main/tests/backend/` | 后端测试目录 |
 | `{FRONTEND_TESTS}` | `main/tests/frontend/` | 前端测试目录 |
+
+> ⚠️ **强制约束**：所有测试文件（`test_*.py`, `*.test.ts`, `*.spec.js` 等）**必须且只能**放在 `{TESTS_ROOT}` 目录下。
+>
+> 已配置 PreToolUse Hook 自动检查，违反此约束的操作将被阻止。
 
 ### 文档目录变量
 
@@ -145,6 +149,7 @@ description: 项目技术标准索引，定义项目的技术栈规范、代码�
 | 数据模型 | `{BACKEND_ROOT}/models/` | SQLAlchemy + Pydantic 模型 |
 | 核心配置 | `{BACKEND_ROOT}/core/` | 配置、异常、安全认证 |
 | 工具函数 | `{BACKEND_ROOT}/utils/` | 日志、验证、中间件 |
+| 数据库文件 | `{BACKEND_ROOT}/db/` | SQLite 数据库文件存储 |
 
 ### 前端目录结构
 
@@ -1451,8 +1456,11 @@ poetry add -G dev pytest-mock  # Mock 支持
 ```python
 # 📁 {BACKEND_ROOT}/core/config.py
 
-# 开发环境：SQLite
-DATABASE_URL = "sqlite:///./test.db"
+# 开发环境：SQLite（使用项目根目录的相对路径）
+DATABASE_URL = "sqlite+aiosqlite:///main/backend/db/ket_exam.db"
+
+# 测试环境：SQLite
+DATABASE_URL = "sqlite+aiosqlite:///main/backend/db/test.db"
 
 # 生产环境：PostgreSQL
 DATABASE_URL = "postgresql+asyncpg://user:password@localhost/dbname"
@@ -1462,6 +1470,11 @@ QDRANT_URL = "http://localhost:6333"
 # 或使用内存模式（开发）
 QDRANT_PATH = "./qdrant_storage"
 ```
+
+**重要说明**：
+- 所有 SQLite 数据库文件统一存放在 `{BACKEND_ROOT}/db/` 目录
+- 使用相对路径配置，确保从项目根目录运行时能正确找到数据库
+- 数据库文件已添加到 `.gitignore`，不会提交到版本控制
 
 ### Qdrant 快速启动
 

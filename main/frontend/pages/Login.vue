@@ -62,6 +62,11 @@ async function handleStudentLogin() {
     error.value = '请输入昵称'
     return
   }
+  
+  if (nickname.value.trim().length < 2) {
+    error.value = '昵称至少需要2个字符，请重新输入'
+    return
+  }
 
   loading.value = true
   error.value = ''
@@ -82,6 +87,9 @@ async function handleStudentLogin() {
       error.value = '请求超时，请稍后重试'
     } else if (err.type === 'server') {
       error.value = '服务器错误，请稍后重试'
+    } else if (err.type === 'validation') {
+      // 处理昵称长度验证错误
+      error.value = '昵称至少需要2个字符，请重新输入'
     } else {
       error.value = err.message || '登录失败，请检查账号密码'
     }

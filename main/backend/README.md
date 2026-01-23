@@ -1,12 +1,12 @@
-# KET备考系统 - 后端API
+# KET备考系统 - 后端 API
 
-专为小学生设计的KET考试备考系统后端服务
+专为小学生设计的 KET 考试备考系统后端服务
 
 ## 技术栈
 
 - Python 3.10+
 - FastAPI 0.100+
-- SQLAlchemy 2.x (异步ORM)
+- SQLAlchemy 2.x (异步 ORM)
 - Pydantic 2.x (数据验证)
 - SQLite (开发环境)
 - JWT (身份认证)
@@ -40,10 +40,70 @@ python main.py
 
 服务将在 http://localhost:8000 启动
 
-### 4. 访问API文档
+### 4. 访问 API 文档
 
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
+
+## 目录结构
+
+```
+main/backend/               # 后端代码根目录
+├── api/                   # API 路由层
+│   └── routes/            # 路由文件
+│       ├── auth_router.py         # 认证路由
+│       ├── question_router.py     # 题目路由
+│       ├── answer_router.py       # 答题路由
+│       ├── progress_router.py     # 进度路由
+│       ├── admin_router.py       # 管理员路由
+│       ├── speed_quiz_router.py  # 抢答路由
+│       └── monitor_router.py     # AlphaZero 监控路由
+├── core/                  # 核心配置
+│   ├── config.py          # 配置管理
+│   ├── database.py        # 数据库连接
+│   ├── security.py        # 安全认证
+│   └── exceptions.py      # 异常定义
+├── models/                # 数据模型层
+│   ├── db.py              # SQLAlchemy 模型
+│   └── schema.py          # Pydantic 模型
+├── services/              # 业务逻辑层
+│   ├── auth_service.py    # 认证服务
+│   ├── question_service.py # 题目服务
+│   ├── progress_service.py # 进度服务
+│   └── speed_quiz_service.py # 抢答服务
+├── tasks/                 # 定时任务
+│   └── ai_digest/         # AI 日报任务
+│       ├── router.py
+│       ├── service.py
+│       ├── models.py
+│       └── schemas.py
+├── scripts/               # 脚本文件
+│   ├── create_admin.py    # 创建管理员账号
+│   └── alphazero-status.py # AlphaZero 监控脚本
+├── migrations/            # 数据库迁移
+│   ├── add_speed_quiz_tables.py
+│   └── add_ai_digest_table.py
+├── db/                    # 数据库文件目录
+│   ├── ket_exam.db        # 主数据库
+│   ├── test.db            # 测试数据库
+│   └── .gitignore         # 忽略数据库文件
+├── main.py                # 应用入口
+└── requirements.txt       # 依赖列表
+```
+
+## 目录结构约束（必须遵守）
+
+| 内容类型 | 必须放在 | 禁止放在 |
+|----------|----------|----------|
+| **API 路由** | `main/backend/api/routes/` | 后端根目录 |
+| **业务逻辑** | `main/backend/services/` | 后端根目录 |
+| **数据模型** | `main/backend/models/` | 后端根目录 |
+| **核心配置** | `main/backend/core/` | 后端根目录 |
+| **定时任务** | `main/backend/tasks/` | 后端根目录 |
+| **脚本文件** | `main/backend/scripts/` | 后端根目录 |
+| **数据库文件** | `main/backend/db/` | 后端根目录 |
+| **数据库迁移** | `main/backend/migrations/` | 后端根目录 |
+| **应用入口** | `main/backend/main.py` | 其他位置 |
 
 ## 核心功能
 
@@ -60,132 +120,66 @@ python main.py
 
 - `POST /api/v1/answers` - 提交答案（自动计算得分、连击、成就）
 
+### 监控接口（AlphaZero）
+
+- `GET /api/v1/monitor/stats` - 系统状态统计
+- `GET /api/v1/monitor/agents` - Agent 信息
+- `GET /api/v1/monitor/rules` - 策略规则
+- `GET /api/v1/monitor/experience` - 经验池
+- `GET /api/v1/monitor/health` - 健康检查
+
 ## 数据库
 
-系统使用SQLite数据库，首次启动时会自动创建数据库和示例数据：
+系统使用 SQLite 数据库，数据库文件位于 `main/backend/db/` 目录：
 
-- 管理员账号：admin / admin123
-- 10道示例题目（词汇、语法、阅读）
-- 4个成就徽章
+- **主数据库**: `main/backend/db/ket_exam.db`
+- **测试数据库**: `main/backend/db/test.db`
 
-## 项目结构
+首次启动时会自动创建数据库和示例数据：
 
-```
-main/backend/
-├── api/                 # API路由层
-│   └── routes/
-│       ├── auth_router.py      # 认证路由
-│       ├── question_router.py  # 题目路由
-│       └── answer_router.py    # 答题路由
-├── services/            # 业务逻辑层
-│   ├── auth_service.py         # 认证服务
-│   ├── question_service.py     # 题目服务
-│   └── progress_service.py     # 进度服务
-├── models/              # 数据模型层
-│   ├── db.py                   # SQLAlchemy模型
-│   └── schema.py               # Pydantic模型
-├── core/                # 核心配置
-│   ├── config.py               # 配置管理
-│   ├── database.py             # 数据库连接
-│   ├── security.py             # 安全认证
-│   └── exceptions.py           # 异常定义
-├── main.py              # 应用入口
-├── requirements.txt     # 依赖列表
-└── .env.example         # 环境变量示例
-```
+- 管理员账号：`admin / admin123`
+- 10 道示例题目（词汇、语法、阅读）
+- 4 个成就徽章
 
-## 核心逻辑
+## 使用脚本
 
-### 连击计算
-
-系统会自动计算用户的连续答对题数（连击）：
-- 答对：连击+1
-- 答错：连击归零
-
-### 得分计算
-
-```
-基础分 = 10分
-连击加成:
-  - 连击2-5: x1.5
-  - 连击6-10: x2.0
-  - 连击11+: x2.5
-速度加成: 答题时间 < 10秒 ? 5分 : 0分
-
-总分 = 基础分 * 连击系数 + 速度加成
-```
-
-### 成就系统
-
-系统会自动检测并解锁成就：
-- 初学者：完成第1道题目
-- 勤奋学习：完成10道题目
-- 连击高手：连续答对5题
-- 学霸：完成50道题目
-
-### 错题本
-
-答错的题目会自动记录到错题本，包括：
-- 错误次数
-- 最后错误时间
-
-## API使用示例
-
-### 学生登录
+### 创建管理员账号
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/auth/login/student \
-  -H "Content-Type: application/json" \
-  -d '{"nickname": "小明"}'
+python scripts/create_admin.py
 ```
 
-### 获取随机题目
+### AlphaZero 监控
 
 ```bash
-curl -X GET "http://localhost:8000/api/v1/questions/random?module=vocabulary&difficulty=1" \
-  -H "Authorization: Bearer YOUR_TOKEN"
-```
-
-### 提交答案
-
-```bash
-curl -X POST http://localhost:8000/api/v1/answers \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{
-    "question_id": 1,
-    "answer": "A",
-    "answer_time": 8
-  }'
+python scripts/alphazero-status.py
 ```
 
 ## 开发说明
 
-### 添加新题目
+### 添加新 API
 
-可以通过管理员接口或直接操作数据库添加题目。题目包含：
-- module: vocabulary/grammar/reading
-- difficulty: 1-5
-- question_text: 题目文本
-- option_a/b/c/d: 选项
-- correct_answer: 正确答案 (A/B/C/D)
-- explanation: 答案解析
+1. 在 `api/routes/` 下创建路由文件
+2. 在 `api/routes/__init__.py` 中导出
+3. 在 `main.py` 中注册路由
 
-### 扩展功能
+### 添加新服务
 
-系统设计支持以下扩展：
-- 进度统计接口
-- 学习日历
-- 排行榜
-- 家长端API
-- 听力模块
+1. 在 `services/` 下创建服务文件
+2. 实现业务逻辑
+3. 在路由中调用服务
 
-## 注意事项
+### 添加定时任务
 
-1. 生产环境请修改 `.env` 中的 `SECRET_KEY`
-2. 生产环境建议使用 PostgreSQL 替代 SQLite
-3. 建议配置 CORS 白名单限制跨域访问
-4. 定期备份数据库文件 `ket_exam.db`
+1. 在 `tasks/` 下创建任务目录
+2. 实现任务逻辑
+3. 在 `main.py` 中注册任务
+
+## 常见问题
+
+1. **生产环境部署**：修改 `.env` 中的 `SECRET_KEY`
+2. **数据库切换**：生产环境建议使用 PostgreSQL
+3. **CORS 配置**：在 `main.py` 中修改白名单
 
 ## 许可证
 

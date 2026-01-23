@@ -247,7 +247,121 @@ Hook 脚本位置：`.claude/hooks/scripts/quality-gate.sh`
 python3 .claude/hooks/scripts/verify_standards.py --verbose
 ```
 
-### 7. 进化失败处理
+### 7. 从 .claude/rules/ 提炼策略经验
+
+Evolver 会自动读取 `.claude/rules/` 目录下的策略规则，进行元进化。
+
+#### 7.1 读取策略规则
+
+```python
+# 读取 .claude/rules/ 下的所有策略规则
+def read_strategy_rules():
+    """读取所有策略规则文件"""
+    rules_dir = Path(".claude/rules")
+    rules = {}
+    
+    for rule_file in rules_dir.glob("*.md"):
+        agent_type = rule_file.stem  # frontend, backend, collaboration
+        content = rule_file.read_text()
+        rules[agent_type] = {
+            "file": str(rule_file),
+            "content": content,
+            "updated": get_file_mtime(rule_file)
+        }
+    
+    return rules
+```
+
+#### 7.2 提炼到 Agent 配置
+
+当 `.claude/rules/` 有新的策略规则时，Evolver 会：
+
+1. **读取规则文件** - 提取策略关键词和洞察
+2. **分析模式** - 识别高频策略和最佳实践
+3. **更新 Agent 文件** - 将策略经验写入对应的 Agent 配置
+
+```python
+# 提炼示例
+def extract_insights_to_agent(rules: dict, agent_file: str):
+    """将策略规则提炼到 Agent 文件"""
+    content = read(agent_file)
+    
+    # 提取前端规则中的洞察
+    frontend_insights = rules.get("frontend", {}).get("content", "")
+    
+    # 构建进化记录
+    evolution_note = f"""
+
+### 基于 .claude/rules/frontend.md 的策略学习
+
+**更新时间**: {datetime.now().isoformat()}
+
+**提炼的策略**: {extract_strategy_summary(frontend_insights)}
+
+**最佳实践**: 
+- {extract_best_practices(frontend_insights)}
+
+"""
+    
+    # 追加到 Agent 文件末尾
+    write(agent_file, content + evolution_note)
+```
+
+#### 7.3 策略进化优先级
+
+| 优先级 | 来源 | 进化目标 |
+|--------|------|----------|
+| 1 | experience_pool.json | 原始数据积累 |
+| 2 | .claude/rules/*.md | 策略规则沉淀 |
+| 3 | Agent 文件 | 最佳实践固化 |
+| 4 | project_standards.md | 全局标准更新 |
+
+#### 7.4 避免重复提炼
+
+```python
+# 检查是否需要提炼
+def should_evolve_from_rules(agent_type: str, rules_file: str) -> bool:
+    """检查是否需要从规则提炼到 Agent"""
+    agent_file = f".claude/agents/{agent_type}.md"
+    
+    # 读取两者的更新时间
+    rule_mtime = get_file_mtime(rules_file)
+    agent_mtime = get_file_mtime(agent_file)
+    
+    # 如果规则文件更新，且 Agent 文件24小时内没有进化过
+    if rule_mtime > agent_mtime:
+        if not has_recent_evolution(agent_file, hours=24):
+            return True
+    
+    return False
+```
+
+#### 7.5 与现有进化流程的关系
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     完整进化数据流                               │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  任务执行 → reward_evaluator.py (计算奖励)                       │
+│      ↓                                                         │
+│  SubagentStop → strategy_learner.py (写入 .claude/rules/)       │
+│      ↓                                                         │
+│  Evolver 读取 .claude/rules/ (新增)                             │
+│      ↓                                                         │
+│  Evolver 提炼到 Agent/Skill/Standards (本节)                    │
+│      ↓                                                         │
+│  下次任务使用进化后的配置                                       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**关键点**：
+- strategy_learner 负责**实时写入**策略规则
+- Evolver 负责**定期提炼**到全局知识库
+- 两者配合，形成"实时学习 → 定期提炼"的闭环
+
+### 8. 进化失败处理
 
 如果进化过程中出现问题，按以下优先级处理：
 
