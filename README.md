@@ -1,4 +1,7 @@
 # Claude Dev Team v3.0 - LLM驱动的智能AI协作团队 🤖
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/yanyinxi/claude-dev-team/blob/main/CONTRIBUTING.md)
+
+📖 [贡献指南](CONTRIBUTING.md) | 📚 [文档](README.md) | 🧪 [测试验证](.claude/tests/)
 
 基于 Claude Code 原生能力构建的**完全LLM驱动**自进化AI开发团队系统，模拟真实软件开发团队的角色分工和协作流程。
 
