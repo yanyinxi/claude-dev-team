@@ -63,6 +63,25 @@ const router = createRouter({
       name: 'Monitor',
       component: () => import('@/pages/Monitor.vue'),
       meta: { requiresAuth: false }  // 监控页面不需要登录
+    },
+    // 功能区域页面
+    {
+      path: '/learning-zone',
+      name: 'LearningZone',
+      component: () => import('@/pages/LearningZone.vue'),
+      meta: { requiresAuth: false }
+    },
+    {
+      path: '/game-zone',
+      name: 'GameZone',
+      component: () => import('@/pages/GameZone.vue'),
+      meta: { requiresAuth: false }
+    },
+    {
+      path: '/news-zone',
+      name: 'NewsZone',
+      component: () => import('@/pages/NewsZone.vue'),
+      meta: { requiresAuth: false }
     }
   ]
 })
