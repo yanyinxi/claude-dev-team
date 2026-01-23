@@ -56,7 +56,7 @@ class AiDigestService:
             summary=json.dumps(
                 [item.model_dump() for item in data.summary], ensure_ascii=False
             ),
-            content=data.content,  # content is already a JSON string
+            content=json.dumps(data.content, ensure_ascii=False),  # 将字典转换为 JSON 字符串
             total_items=data.total_items,
         )
 
@@ -150,7 +150,7 @@ class AiDigestService:
                 [item.model_dump() for item in data.summary], ensure_ascii=False
             )
         if data.content is not None:
-            digest.content = data.content  # content is already a JSON string
+            digest.content = json.dumps(data.content, ensure_ascii=False)  # 将字典转换为 JSON 字符串
         if data.total_items is not None:
             digest.total_items = data.total_items
 

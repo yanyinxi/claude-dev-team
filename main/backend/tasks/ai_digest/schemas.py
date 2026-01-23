@@ -5,7 +5,7 @@ AI 日报 Pydantic Schema
 """
 
 from datetime import date, datetime
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
 
@@ -30,7 +30,7 @@ class AiDigestCreate(BaseModel):
     digest_date: date = Field(..., alias="date", description="日报日期")
     title: str = Field(..., description="日报标题")
     summary: List[AiDigestSummaryItem] = Field(..., description="今日要闻摘要")
-    content: str = Field(..., description="完整日报内容（JSON 字符串）")
+    content: Dict[str, Any] = Field(..., description="完整日报内容（JSON 对象）")
     total_items: int = Field(default=0, description="资讯总数")
 
     model_config = {"populate_by_name": True}
@@ -43,7 +43,7 @@ class AiDigestUpdate(BaseModel):
     summary: Optional[List[AiDigestSummaryItem]] = Field(
         None, description="今日要闻摘要"
     )
-    content: Optional[str] = Field(None, description="完整日报内容（JSON 字符串）")
+    content: Optional[Dict[str, Any]] = Field(None, description="完整日报内容（JSON 对象）")
     total_items: Optional[int] = Field(None, description="资讯总数")
 
 
@@ -54,7 +54,7 @@ class AiDigestResponse(BaseModel):
     digest_date: date = Field(..., alias="date", description="日报日期")
     title: str = Field(..., description="日报标题")
     summary: List[AiDigestSummaryItem] = Field(..., description="今日要闻摘要")
-    content: str = Field(..., description="完整日报内容（JSON 字符串）")
+    content: Dict[str, Any] = Field(..., description="完整日报内容（JSON 对象）")
     total_items: int = Field(..., description="资讯总数")
     created_at: datetime = Field(..., description="创建时间")
     updated_at: datetime = Field(..., description="更新时间")

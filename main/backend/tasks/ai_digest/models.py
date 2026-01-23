@@ -66,12 +66,30 @@ class AiDigest(Base):
         """转换为字典"""
         import json
 
+        # 处理 summary 字段：支持 JSON 数组或纯文本格式
+        summary_data = []
+        if self.summary:
+            try:
+                # 尝试解析为 JSON
+                summary_data = json.loads(self.summary)
+            except (json.JSONDecodeError, ValueError):
+                # 如果解析失败，将纯文本按行分割为数组
+                summary_data = [line.strip() for line in self.summary.split('\n') if line.strip()]
+
+        # 处理 content 字段：解析 JSON 字符串
+        content_data = {}
+        if self.content:
+            try:
+                content_data = json.loads(self.content)
+            except (json.JSONDecodeError, ValueError):
+                content_data = {}
+
         return {
             "id": self.id,
             "date": self.date.isoformat() if self.date else None,
             "title": self.title,
-            "summary": json.loads(self.summary) if self.summary else [],
-            "content": self.content,  # content 是 JSON 字符串，直接返回
+            "summary": summary_data,
+            "content": content_data,  # 解析后的 JSON 对象
             "total_items": self.total_items,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
