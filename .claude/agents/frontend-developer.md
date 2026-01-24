@@ -1,20 +1,12 @@
 ---
 name: frontend-developer
-description: |
-  前端开发专家，负责实现用户界面和交互逻辑。
-  Use proactively 实现 React/Vue/Next.js 组件、编写前端测试、优化前端性能。
-  主动创建响应式、可访问、高性能的用户界面，包含完善的状态管理。
-  触发词：前端、前端开发、UI、组件
-tools:
-  - TodoWrite
-  - Bash
-  - Write
-  - Read
-  - Edit
-  - Grep
-  - Glob
-model: inherit
+description: 前端开发专家，负责实现用户界面和交互逻辑。主动创建响应式、可访问、高性能的用户界面，包含完善的状态管理。触发词：前端、前端开发、UI、组件
+tools: Read, Write, Edit, Bash, Grep, Glob, TodoWrite
+disallowedTools: WebFetch, WebSearch
+model: sonnet
 permissionMode: acceptEdits
+skills: 
+context: main
 ---
 
 # 前端开发代理

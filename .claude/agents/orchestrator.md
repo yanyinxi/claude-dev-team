@@ -1,27 +1,12 @@
 ---
 name: orchestrator
-description: |
-  主协调器，协调 7 个子代理完成从需求到交付的完整流程，支持动态任务分配和智能并行执行。
-  Use proactively 处理复杂的多步骤工作流，协调多个专业代理完成复杂任务。
-  主动管理任务分配、跟踪项目进度、确保质量关卡，支持根据任务复杂度动态调整并行度。
-  触发词：协调、管理流程、整个项目、Orchestrator
-tools:
-  - Task
-  - TodoWrite
-  - Bash
-  - Read
-  - Write
-  - Glob
-  - background_task
-  - background_output
-skills:
-  - requirement-analysis
-  - architecture-design
-  - task-distribution
-  - testing
-  - code-quality
-model: inherit
+description: 主协调器，协调 7 个子代理完成从需求到交付的完整流程，支持动态任务分配和智能并行执行。 Use proactively 处理复杂的多步骤工作流，协调多个专业代理完成复杂任务。 主动管理任务分配、跟踪项目进度、确保质量关卡，支持根据任务复杂度动态调整并行度。 触发词：协调、管理流程、整个项目、Orchestrator
+tools: Read, Write, Bash, Glob, Task, TodoWrite
+disallowedTools: WebFetch, WebSearch
+model: opus
 permissionMode: acceptEdits
+skills: requirement-analysis, architecture-design, task-distribution, testing, code-quality
+context: main
 ---
 
 # 主协调器 (Orchestrator)

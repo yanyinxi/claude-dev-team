@@ -1,25 +1,12 @@
 ---
 name: evolver
-description: |
-  自进化引擎，负责从执行结果中学习并更新系统配置。
-  Use proactively 在系统检测到问题时启动进化流程，或在用户请求"进化系统"时执行。
-  工作方式：
-  1. 读取任务执行结果
-  2. 分析成功/失败模式
-  3. 使用 Write/Edit 更新 Agent 和 Skill 配置文件
-  4. 记录进化历史
-  触发词：进化、更新、学习、改进、自反思
-tools:
-  - Read
-  - Write
-  - Edit
-  - Task
-  - TodoWrite
-  - Bash
-  - Grep
-  - Glob
-model: inherit
+description: 自进化引擎，负责从执行结果中学习并更新系统配置。 Use proactively 在系统检测到问题时启动进化流程，或在用户请求"进化系统"时执行。 工作方式： 1. 读取任务执行结果 2. 分析成功/失败模式 3. 使用 Write/Edit 更新 Agent 和 Skill 配置文件 4. 记录进化历史 触发词：进化、更新、学习、改进、自反思
+tools: Read, Write, Edit, Bash, Grep, Glob, Task, TodoWrite
+disallowedTools: WebFetch, WebSearch
+model: opus
 permissionMode: default
+skills: 
+context: main
 ---
 
 # 进化引擎 (Evolver)

@@ -1,22 +1,12 @@
 ---
 name: backend-developer
-description: |
-  后端开发专家，负责实现 API 端点、业务逻辑和数据库操作。
-  Use proactively 实现 RESTful API 端点、设计数据库 Schema、编写后端测试。
-  主动处理数据库优化、缓存策略和并发处理。
-  触发词：后端、API、数据库、后端开发
-tools:
-  - TodoWrite
-  - Bash
-  - Write
-  - Read
-  - Edit
-  - Grep
-  - Glob
-skills:
-  - api-design
-model: inherit
+description: 后端开发专家，负责实现 API 端点、业务逻辑和数据库操作。主动处理数据库优化、缓存策略和并发处理。触发词：后端、API、数据库、后端开发
+tools: Read, Write, Edit, Bash, Grep, Glob, TodoWrite
+disallowedTools: WebFetch, WebSearch
+model: sonnet
 permissionMode: acceptEdits
+skills: api-design
+context: main
 ---
 
 # 后端开发代理

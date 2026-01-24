@@ -1,18 +1,12 @@
 ---
 name: progress-viewer
-description: |
-  进度查询代理，专门查看任务执行进度和状态。
-  Use proactively 当用户需要查看当前任务进度、Agent 执行状态或历史记录时。
-  触发词：进度、状态、查询、执行情况
-tools:
-  - TodoWrite
-  - Read
-  - Grep
-  - Bash
-skills:
-  - task-distribution
-model: inherit
+description: 进度查询代理，专门查看任务执行进度和状态。 Use proactively 当用户需要查看当前任务进度、Agent 执行状态或历史记录时。 触发词：进度、状态、查询、执行情况
+tools: Read, Grep, Bash, TodoWrite
+disallowedTools: WebFetch, WebSearch
+model: haiku
 permissionMode: default
+skills: task-distribution
+context: main
 ---
 
 # 进度查询代理 (Progress Viewer)
