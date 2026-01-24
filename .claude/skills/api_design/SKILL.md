@@ -1,6 +1,11 @@
 ---
 name: api-design
-description: 设计 RESTful API 规范。用于 API 端点定义、请求/响应格式、数据模型设计。
+description: 设计 RESTful API 规范，包括端点定义、请求/响应格式、数据模型。用于 API 端点设计、接口契约定义、数据模型设计、OpenAPI 规范编写。适用于新 API 开发、API 重构、接口文档编写等场景。
+disable-model-invocation: false
+user-invocable: true
+allowed-tools: Read, Write, Grep, Glob
+context: fork
+agent: tech-lead
 ---
 
 # API 设计技能
@@ -73,9 +78,15 @@ components:
 ## 最佳实践
 
 1. **RESTful**：遵循 REST 设计原则
-2. **版本控制**：在 URL 中包含版本号
+2. **版本控制**：在 URL 中包含版本号（如 /api/v1/）
 3. **安全性**：使用 HTTPS，实施认证
 4. **一致性**：保持命名和格式一致
+5. **文档完整**：提供清晰的请求/响应示例
+
+## 参考资料
+
+- 参考 @.claude/project_standards.md 的 API 规范章节
+- 参考 @main/docs/api/ 查看历史 API 设计
 
 ---
 

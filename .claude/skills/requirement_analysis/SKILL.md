@@ -1,6 +1,11 @@
 ---
 name: requirement-analysis
-description: 分析用户需求并生成详细的产品需求文档（PRD）。用于需求收集、功能拆分、验收标准定义、优先级排序。
+description: 分析用户需求并生成详细的产品需求文档（PRD）。用于需求收集、功能拆分、验收标准定义、优先级排序。适用于新功能开发、需求澄清、用户故事编写、验收标准制定等场景。
+disable-model-invocation: false
+user-invocable: true
+allowed-tools: Read, Write, Grep, Glob
+context: fork
+agent: product-manager
 ---
 
 # 需求分析技能
@@ -70,6 +75,11 @@ description: 分析用户需求并生成详细的产品需求文档（PRD）。�
 2. **可测试**：每项需求都应该是可测试的
 3. **以用户为中心**：关注用户价值
 4. **可测量**：验收标准应该可测量、可验证
+
+## 参考资料
+
+- 参考 @.claude/project_standards.md 获取项目技术标准
+- 参考 @main/docs/prds/ 查看历史 PRD 示例
 
 ---
 

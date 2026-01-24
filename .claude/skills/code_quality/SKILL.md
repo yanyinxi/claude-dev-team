@@ -1,6 +1,11 @@
 ---
 name: code-quality
-description: 审查代码质量和安全问题。用于代码审查、安全扫描、性能优化、代码规范检查。
+description: 审查代码质量和安全问题。用于代码审查、安全扫描、性能优化、代码规范检查。适用于 PR 审查、代码质量检查、安全漏洞扫描、性能优化建议等场景。
+disable-model-invocation: false
+user-invocable: true
+allowed-tools: Read, Grep, Glob, Bash
+context: fork
+agent: code-reviewer
 ---
 
 # 代码质量技能
@@ -79,6 +84,24 @@ description: 审查代码质量和安全问题。用于代码审查、安全扫�
 2. **具体明确**：问题描述要具体
 3. **提供方案**：给出具体的修复建议
 4. **分级处理**：按严重程度分类处理
+5. **参考标准**：遵循 project_standards.md 中的规范
+
+## 常见问题检查清单
+
+- [ ] SQL 注入风险
+- [ ] XSS 跨站脚本攻击
+- [ ] 硬编码的密钥/密码
+- [ ] 未处理的异常
+- [ ] 资源泄露（文件、连接未关闭）
+- [ ] 性能瓶颈（N+1 查询、大循环）
+- [ ] 代码重复
+- [ ] 命名不规范
+- [ ] 缺少注释
+
+## 参考资料
+
+- 参考 @.claude/project_standards.md 的代码规范
+- 参考 @main/docs/reviews/ 查看历史审查报告
 
 ---
 
