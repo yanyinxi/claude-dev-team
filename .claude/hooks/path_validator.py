@@ -15,6 +15,7 @@
 """
 
 import json
+import os
 import sys
 import re
 from pathlib import Path
@@ -45,7 +46,7 @@ ALLOWED_PATHS = [
     r"^main/tests/",      # 唯一允许的测试目录
     r"^main/docs/",
     r"^examples/",
-    r"^\.claude/",
+    r"^\.claude/",        # .claude/ and all subdirectories
     r"^\.github/",
     r"^README\.md$",
     r"^CLAUDE\.md$",
@@ -181,6 +182,16 @@ def main():
     file_path = tool_input.get("file_path", "")
     if not file_path:
         sys.exit(0)
+
+    # 转换为相对路径（如果是绝对路径）
+    project_root = Path(os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd()))
+    file_path_obj = Path(file_path)
+    if file_path_obj.is_absolute():
+        try:
+            file_path = str(file_path_obj.relative_to(project_root))
+        except ValueError:
+            # 如果路径不在项目根目录下，保持原样
+            pass
 
     # 验证路径
     error = validate_path(file_path, tool_name)
