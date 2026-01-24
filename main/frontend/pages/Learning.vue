@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import { useQuestionStore } from '@/stores/questionStore'
 import { useProgressStore } from '@/stores/progressStore'
+import { useAlarmStore } from '@/stores/alarmStore'
 import { questionService } from '@/services/questionService'
+import * as alarmService from '@/services/alarmService'
 import AnswerOptions from '@/components/learning/AnswerOptions.vue'
 import RewardAnimation from '@/components/learning/RewardAnimation.vue'
+import AlarmCountdown from '@/components/AlarmCountdown.vue'
+import RestPrompt from '@/components/RestPrompt.vue'
 import Button from '@/components/common/Button.vue'
 import SpeedQuiz from './SpeedQuiz.vue'
 
@@ -14,6 +18,7 @@ const router = useRouter()
 const userStore = useUserStore()
 const questionStore = useQuestionStore()
 const progressStore = useProgressStore()
+const alarmStore = useAlarmStore()
 
 const showModeSelection = ref(true)
 const selectedMode = ref('')
@@ -26,6 +31,66 @@ const explanation = ref('')
 const showReward = ref(false)
 const startTime = ref(0)
 
+// 闹钟相关状态
+const alarmLoading = ref(false)
+const alarmError = ref('')
+const alarmStatusTimer = ref<number | null>(null)
+
+// 加载闹钟状态
+async function loadAlarmStatus() {
+  try {
+    const status = await alarmService.getAlarmStatus()
+    alarmStore.updateStatus(status)
+  } catch (err: any) {
+    console.error('Failed to load alarm status:', err)
+  }
+}
+
+// 开始学习（启动闹钟）
+async function startLearning() {
+  alarmLoading.value = true
+  alarmError.value = ''
+  try {
+    const status = await alarmService.startAlarm()
+    alarmStore.updateStatus(status)
+  } catch (err: any) {
+    alarmError.value = err.message || '启动学习失败'
+  } finally {
+    alarmLoading.value = false
+  }
+}
+
+// 验证是否可以操作
+async function validateOperation() {
+  try {
+    const validation = await alarmService.validateAlarm()
+    alarmStore.updateValidation(validation)
+    return validation.can_operate
+  } catch (err: any) {
+    console.error('Failed to validate operation:', err)
+    return true  // 验证失败时允许操作
+  }
+}
+
+// 定期同步闹钟状态（每 30 秒）
+function startAlarmStatusSync() {
+  if (alarmStatusTimer.value) {
+    clearInterval(alarmStatusTimer.value)
+  }
+  alarmStatusTimer.value = window.setInterval(() => {
+    loadAlarmStatus()
+  }, 30000)  // 30 秒
+}
+
+// 停止状态同步
+function stopAlarmStatusSync() {
+  if (alarmStatusTimer.value) {
+    clearInterval(alarmStatusTimer.value)
+    alarmStatusTimer.value = null
+  }
+}
+
+
 const moduleNames = {
   vocabulary: { name: '词汇', emoji: '📚', color: 'from-blue-400 to-cyan-400' },
   grammar: { name: '语法', emoji: '✏️', color: 'from-purple-400 to-pink-400' },
@@ -33,6 +98,13 @@ const moduleNames = {
 }
 
 async function loadQuestion() {
+  // 验证是否可以操作
+  const canOperate = await validateOperation()
+  if (!canOperate) {
+    alarmError.value = alarmStore.validation.reason || '休息时间不能答题'
+    return
+  }
+
   loading.value = true
   try {
     const res = await questionService.getRandomQuestion()
@@ -49,9 +121,15 @@ async function loadQuestion() {
   }
 }
 
-function selectMode(mode: string) {
+async function selectMode(mode: string) {
   selectedMode.value = mode
   showModeSelection.value = false
+  
+  // 启动学习闹钟
+  if (alarmStore.isIdle) {
+    await startLearning()
+  }
+  
   if (mode === 'normal') {
     loadQuestion()
   }
@@ -107,7 +185,15 @@ function nextQuestion() {
 }
 
 onMounted(() => {
-  // Don't load question automatically, wait for mode selection
+  // 加载闹钟状态
+  loadAlarmStatus()
+  // 启动状态同步
+  startAlarmStatusSync()
+})
+
+onUnmounted(() => {
+  // 停止状态同步
+  stopAlarmStatusSync()
 })
 </script>
 
@@ -170,6 +256,18 @@ onMounted(() => {
           </Button>
         </div>
       </div>
+
+
+      <!-- 闹钟倒计时 -->
+      <div v-if="!showModeSelection && selectedMode === 'normal'" class="mb-3">
+        <AlarmCountdown />
+      </div>
+
+      <!-- 闹钟错误提示 -->
+      <div v-if="alarmError" class="mb-3 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl">
+        {{ alarmError }}
+      </div>
+
 
       <!-- 模式选择界面 -->
       <div v-if="showModeSelection" class="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl">
@@ -300,6 +398,10 @@ onMounted(() => {
     </div>
 
     <RewardAnimation v-if="showReward" :streak="progressStore.streak" />
+  
+    <!-- 休息提示 -->
+    <RestPrompt />
+
   </div>
 </template>
 

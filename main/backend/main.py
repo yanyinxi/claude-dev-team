@@ -50,6 +50,7 @@ from api.routes.progress_router import router as progress_router
 from api.routes.admin_router import router as admin_router
 from api.routes.speed_quiz_router import router as speed_quiz_router
 from api.routes.monitor_router import router as monitor_router
+from api.routes.alarm_router import router as alarm_router
 from tasks.ai_digest.router import router as ai_digest_router
 
 app.include_router(auth_router, prefix="/api/v1", tags=["认证"])
@@ -60,6 +61,7 @@ app.include_router(admin_router, prefix="/api/v1", tags=["管理员"])
 app.include_router(speed_quiz_router, prefix="/api/v1", tags=["抢答"])
 app.include_router(monitor_router, prefix="/api/v1", tags=["监控"])
 app.include_router(ai_digest_router, tags=["AI 日报"])
+app.include_router(alarm_router, prefix="/api/v1", tags=["闹钟"])
 
 
 @app.get("/")

@@ -151,3 +151,37 @@ class SpeedQuizDetail(Base):
 
     # 关系
     battle = relationship("SpeedQuizBattle", back_populates="details")
+
+
+class AlarmRule(Base):
+    """闹钟规则表"""
+    __tablename__ = "alarm_rules"
+
+    id = Column(Integer, primary_key=True, index=True)
+    rule_type = Column(String(20), nullable=False, index=True)  # global/personal
+    student_nickname = Column(String(50), nullable=True, index=True)  # 个性化规则的学生昵称
+    study_duration = Column(Integer, nullable=False)  # 学习时长（分钟）
+    rest_duration = Column(Integer, nullable=False)  # 休息时长（分钟）
+    is_active = Column(Boolean, default=True)  # 是否启用
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # 关系
+    sessions = relationship("AlarmSession", back_populates="rule")
+
+
+class AlarmSession(Base):
+    """学习会话表"""
+    __tablename__ = "alarm_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    session_type = Column(String(20), nullable=False)  # studying/resting
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=False)
+    rule_id = Column(Integer, ForeignKey("alarm_rules.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # 关系
+    user = relationship("User")
+    rule = relationship("AlarmRule", back_populates="sessions")

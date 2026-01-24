@@ -254,3 +254,53 @@ class ApiResponse(BaseModel):
     code: int = 200
     message: str = "success"
     data: Optional[dict] = None
+
+
+# ============ 闹钟相关模型 ============
+
+
+class AlarmRuleCreate(BaseModel):
+    """创建闹钟规则请求"""
+    rule_type: str = Field(..., pattern="^(global|personal)$", description="规则类型: global/personal")
+    student_nickname: Optional[str] = Field(None, description="学生昵称（个性化规则必填）")
+    study_duration: int = Field(..., ge=1, le=120, description="学习时长（分钟）")
+    rest_duration: int = Field(..., ge=1, le=60, description="休息时长（分钟）")
+
+
+class AlarmRuleUpdate(BaseModel):
+    """更新闹钟规则请求"""
+    study_duration: Optional[int] = Field(None, ge=1, le=120, description="学习时长（分钟）")
+    rest_duration: Optional[int] = Field(None, ge=1, le=60, description="休息时长（分钟）")
+    is_active: Optional[bool] = Field(None, description="是否启用")
+
+
+class AlarmRuleResponse(BaseModel):
+    """闹钟规则响应"""
+    id: int
+    rule_type: str
+    student_nickname: Optional[str]
+    study_duration: int
+    rest_duration: int
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class AlarmStatusResponse(BaseModel):
+    """学习状态响应"""
+    session_type: str = Field(..., description="会话类型: studying/resting/idle")
+    start_time: Optional[datetime] = Field(None, description="开始时间")
+    end_time: Optional[datetime] = Field(None, description="结束时间")
+    remaining_seconds: int = Field(..., description="剩余秒数")
+    is_blocked: bool = Field(..., description="是否被阻止操作")
+    rule: Optional[AlarmRuleResponse] = Field(None, description="生效的规则")
+
+
+class AlarmValidateResponse(BaseModel):
+    """验证响应"""
+    can_operate: bool = Field(..., description="是否可以操作")
+    reason: Optional[str] = Field(None, description="不能操作的原因")
+    remaining_seconds: int = Field(0, description="剩余休息秒数")

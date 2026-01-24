@@ -46,6 +46,12 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
+      path: '/alarm-management',
+      name: 'AlarmManagement',
+      component: () => import('@/pages/AlarmManagement.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
       path: '/ai-digest',
       name: 'AiDigest',
       component: () => import('@/pages/AiDigestPage.vue'),
