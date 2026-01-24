@@ -1,0 +1,186 @@
+{
+  "nodes": [
+    {
+      "id": "best_practice_002",
+      "type": "best_practice",
+      "domain": "frontend",
+      "title": "组件拆分策略",
+      "description": "将复杂组件拆分为多个小组件，提高可维护性和复用性",
+      "evidence": [
+        "task_alarm_management"
+      ],
+      "success_rate": 0.88,
+      "avg_reward": 8.2,
+      "tags": [
+        "component",
+        "modularity",
+        "reusability"
+      ],
+      "created_at": "2026-01-23T00:00:00Z",
+      "updated_at": "2026-01-23T00:00:00Z"
+    },
+    {
+      "id": "improvement_001",
+      "type": "improvement",
+      "domain": "backend",
+      "title": "统一错误处理格式",
+      "description": "所有 API 应使用标准 ErrorResponse 格式，提高一致性",
+      "evidence": [
+        "code_review_001"
+      ],
+      "success_rate": 0.85,
+      "avg_reward": 7.8,
+      "tags": [
+        "error-handling",
+        "consistency",
+        "api"
+      ],
+      "created_at": "2026-01-22T00:00:00Z",
+      "updated_at": "2026-01-22T00:00:00Z"
+    },
+    {
+      "id": "collaboration_001",
+      "type": "collaboration",
+      "domain": "general",
+      "title": "前后端并行开发模式",
+      "description": "前后端开发者同时工作，通过接口契约协调，效率提升 30%",
+      "evidence": [
+        "task_alarm_clock",
+        "task_speed_quiz"
+      ],
+      "success_rate": 0.9,
+      "avg_reward": 8.8,
+      "tags": [
+        "collaboration",
+        "parallel",
+        "efficiency"
+      ],
+      "created_at": "2026-01-22T00:00:00Z",
+      "updated_at": "2026-01-22T00:00:00Z"
+    },
+    {
+      "id": "system_design_001",
+      "type": "system_design",
+      "domain": "general",
+      "title": "三层防护体系",
+      "description": "文档化（被动教育）+ 自动执行（主动防护）+ 快速参考（辅助查询）",
+      "evidence": [
+        "path_validator_hook"
+      ],
+      "success_rate": 0.95,
+      "avg_reward": 9.5,
+      "tags": [
+        "architecture",
+        "documentation",
+        "automation"
+      ],
+      "created_at": "2026-01-23T00:00:00Z",
+      "updated_at": "2026-01-23T00:00:00Z"
+    },
+    {
+      "id": "best_practice_merged_20260124173531",
+      "type": "best_practice",
+      "domain": "backend",
+      "title": "API-first 并行开发",
+      "description": "先定义接口契约，再并行开发前后端，提升开发效率",
+      "evidence": [
+        "task_123",
+        "task_speed_quiz",
+        "task_alarm_clock"
+      ],
+      "success_rate": 0.92,
+      "avg_reward": 8.5,
+      "tags": [
+        "parallel",
+        "efficiency",
+        "collaboration",
+        "api"
+      ],
+      "created_at": "2026-01-24T00:00:00Z",
+      "updated_at": "2026-01-24T17:35:31.226799"
+    },
+    {
+      "type": "best_practice",
+      "domain": "testing",
+      "title": "测试驱动开发 (TDD)",
+      "description": "先写测试，再写实现代码，确保代码质量",
+      "evidence": [
+        "task_test_001"
+      ],
+      "success_rate": 0.87,
+      "avg_reward": 8.3,
+      "tags": [
+        "testing",
+        "tdd",
+        "quality"
+      ],
+      "id": "best_practice_006",
+      "created_at": "2026-01-24T17:36:46.258398",
+      "updated_at": "2026-01-24T17:36:46.258414"
+    },
+    {
+      "type": "best_practice",
+      "domain": "backend",
+      "title": "JWT Token 无状态认证",
+      "description": "使用 JWT 实现无状态认证，提高系统可扩展性和性能",
+      "evidence": [
+        "task_auth_jwt_001"
+      ],
+      "success_rate": 1.0,
+      "avg_reward": 9.0,
+      "tags": [
+        "auth",
+        "jwt",
+        "security",
+        "stateless"
+      ],
+      "id": "best_practice_007",
+      "created_at": "2026-01-24T17:43:25.223347",
+      "updated_at": "2026-01-24T17:43:25.223362"
+    }
+  ],
+  "edges": [
+    {
+      "from": "best_practice_merged_20260124173531",
+      "to": "collaboration_001",
+      "relation": "enables",
+      "strength": 0.9,
+      "description": "API-first 开发模式是并行开发的基础"
+    },
+    {
+      "from": "improvement_001",
+      "to": "best_practice_merged_20260124173531",
+      "relation": "enhances",
+      "strength": 0.75,
+      "description": "统一错误处理增强 API 设计质量"
+    },
+    {
+      "from": "system_design_001",
+      "to": "improvement_001",
+      "relation": "implements",
+      "strength": 0.85,
+      "description": "三层防护体系用于实施规则约束"
+    },
+    {
+      "from": "best_practice_002",
+      "to": "collaboration_001",
+      "relation": "supports",
+      "strength": 0.7,
+      "description": "组件拆分支持前后端并行开发"
+    },
+    {
+      "from": "best_practice_002",
+      "to": "improvement_001",
+      "relation": "related_to",
+      "strength": 0.8,
+      "description": "测试关联关系"
+    },
+    {
+      "from": "best_practice_007",
+      "to": "best_practice_merged_20260124173531",
+      "relation": "enhances",
+      "strength": 0.85,
+      "description": "JWT 认证增强 API 安全性"
+    }
+  ]
+}
