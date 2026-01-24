@@ -1,11 +1,11 @@
 # System Design Strategy Rules
 
-**更新时间**: 2026-01-23
+**更新时间**: 2026-01-24
 **策略关键词**: system-design, architecture, best-practices
 
----
-paths: ""
----
+## 全局规则
+
+此规则适用于所有系统设计场景，无路径限制。
 
 ## 核心设计原则
 
