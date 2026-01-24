@@ -1,232 +1,312 @@
+<!-- =====================================================
+监控系统主页面
+=====================================================
+功能：监控中心主页面，包含 5 个子组件
+职责：布局管理、WebSocket 连接管理、全局状态初始化
+===================================================== -->
+
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useMonitorStore } from '@/stores/monitorStore'
+import { useUserStore } from '@/stores/userStore'
+import {
+  getIntelligenceTrend,
+  getEvolutionStream,
+  getDiagnosis,
+  getAgentPerformance,
+  getKnowledgeGraph,
+  createWebSocket
+} from '@/services/monitor'
+import MonitorIntelligenceChart from '@/components/MonitorIntelligenceChart.vue'
+import MonitorDiagnosis from '@/components/MonitorDiagnosis.vue'
+import MonitorEvolutionStream from '@/components/MonitorEvolutionStream.vue'
+import MonitorAgentProgress from '@/components/MonitorAgentProgress.vue'
+import MonitorKnowledgeGraph from '@/components/MonitorKnowledgeGraph.vue'
+
+// ==================== 状态管理 ====================
+
+const monitorStore = useMonitorStore()
+const userStore = useUserStore()
+
+// WebSocket 连接
+const ws = ref<WebSocket | null>(null)
+
+// 刷新状态
+const refreshing = ref(false)
+
+// ==================== 生命周期 ====================
+
+onMounted(async () => {
+  // 初始化数据
+  await loadAllData()
+
+  // 建立 WebSocket 连接
+  connectWebSocket()
+})
+
+onUnmounted(() => {
+  // 断开 WebSocket 连接
+  if (ws.value) {
+    ws.value.close()
+  }
+})
+
+// ==================== 方法 ====================
+
+/**
+ * 加载所有数据
+ */
+async function loadAllData() {
+  try {
+    // 并行加载所有数据
+    await Promise.all([
+      loadIntelligenceTrend(),
+      loadEvolutionStream(),
+      loadDiagnosis(),
+      loadAgentPerformance(),
+      loadKnowledgeGraph()
+    ])
+  } catch (error) {
+    console.error('[Monitor] 加载数据失败:', error)
+  }
+}
+
+/**
+ * 加载智能水平走势
+ */
+async function loadIntelligenceTrend() {
+  monitorStore.setLoading('intelligence', true)
+  try {
+    const data = await getIntelligenceTrend('7')
+    monitorStore.setIntelligenceTrend(data)
+  } finally {
+    monitorStore.setLoading('intelligence', false)
+  }
+}
+
+/**
+ * 加载进化事件流
+ */
+async function loadEvolutionStream() {
+  monitorStore.setLoading('evolution', true)
+  try {
+    const data = await getEvolutionStream(50, 0)
+    monitorStore.setEvolutionEvents(data.events, data.total)
+  } finally {
+    monitorStore.setLoading('evolution', false)
+  }
+}
+
+/**
+ * 加载诊断结果
+ */
+async function loadDiagnosis() {
+  monitorStore.setLoading('diagnosis', true)
+  try {
+    const data = await getDiagnosis()
+    monitorStore.setDiagnosis(data)
+  } finally {
+    monitorStore.setLoading('diagnosis', false)
+  }
+}
+
+/**
+ * 加载 Agent 性能
+ */
+async function loadAgentPerformance() {
+  monitorStore.setLoading('agents', true)
+  try {
+    const agents = await getAgentPerformance('all')
+    monitorStore.setAgentPerformance(agents)
+  } finally {
+    monitorStore.setLoading('agents', false)
+  }
+}
+
+/**
+ * 加载知识图谱
+ */
+async function loadKnowledgeGraph() {
+  monitorStore.setLoading('knowledge', true)
+  try {
+    const data = await getKnowledgeGraph('all', '')
+    monitorStore.setKnowledgeGraph(data)
+  } finally {
+    monitorStore.setLoading('knowledge', false)
+  }
+}
+
+/**
+ * 建立 WebSocket 连接
+ */
+function connectWebSocket() {
+  const token = userStore.token || 'guest'
+
+  ws.value = createWebSocket(
+    token,
+    (event) => {
+      // 接收到新的进化事件
+      monitorStore.addEvolutionEvent(event)
+      monitorStore.setWsConnected(true)
+    },
+    (error) => {
+      console.error('[Monitor] WebSocket 错误:', error)
+      monitorStore.setWsConnected(false)
+    }
+  )
+}
+
+/**
+ * 刷新所有数据
+ */
+async function handleRefresh() {
+  refreshing.value = true
+  await loadAllData()
+  refreshing.value = false
+}
+</script>
+
 <template>
-  <div class="min-h-screen bg-slate-900 text-white p-8 font-sans">
+  <div class="monitor-page">
     <!-- Header -->
-    <div class="max-w-7xl mx-auto mb-10 flex justify-between items-end">
-      <div>
-        <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-          Claude 开发团队 v3.0
-        </h1>
-        <p class="text-slate-400 mt-2 text-lg">LLM 驱动的智能协作监控系统</p>
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="px-4 py-2 bg-slate-800 rounded-lg border border-slate-700 flex items-center gap-2">
-          <div class="w-2 h-2 rounded-full" :class="health?.status === 'healthy' ? 'bg-green-500' : 'bg-red-500'"></div>
-          <span class="text-sm font-medium">{{ health?.status === 'healthy' ? '系统在线' : '系统降级' }}</span>
-        </div>
-        <button 
-          @click="loadData" 
-          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-          :disabled="loading"
+    <div class="monitor-header">
+      <h1 class="monitor-title">
+        <span class="icon">🤖</span>
+        Claude Dev Team 监控中心
+      </h1>
+      <div class="monitor-actions">
+        <span v-if="monitorStore.wsConnected" class="ws-status connected">
+          🟢 实时连接
+        </span>
+        <span v-else class="ws-status disconnected">
+          🔴 连接断开
+        </span>
+        <button
+          class="refresh-btn"
+          :disabled="refreshing"
+          @click="handleRefresh"
         >
-          <span v-if="loading" class="animate-spin">⚡</span>
-          <span>刷新数据</span>
+          {{ refreshing ? '刷新中...' : '🔄 刷新数据' }}
         </button>
       </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-      
-      <!-- Left Column: Performance & Overview -->
-      <div class="lg:col-span-2 space-y-8">
-        
-        <!-- Performance Metrics -->
-        <div class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 backdrop-blur-sm">
-          <h2 class="text-xl font-semibold mb-6 flex items-center gap-2">
-            <span class="text-2xl">📊</span> 性能指标 (目标: 95%+)
-          </h2>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div v-for="metric in overview?.metrics" :key="metric.name" 
-                 class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
-              <div class="text-slate-400 text-xs uppercase tracking-wider mb-1">{{ metric.name }}</div>
-              <div class="text-2xl font-bold" :class="metric.status === 'pass' ? 'text-green-400' : 'text-yellow-400'">
-                {{ metric.value }}
-              </div>
-              <div class="text-xs text-slate-500 mt-1">目标: {{ metric.target }}</div>
-            </div>
-          </div>
-        </div>
+    <!-- 智能诊断中心（置顶） -->
+    <MonitorDiagnosis />
 
-        <!-- Intelligent Agents -->
-        <div class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 backdrop-blur-sm">
-          <h2 class="text-xl font-semibold mb-6 flex items-center gap-2">
-            <span class="text-2xl">🤖</span> 智能代理 ({{ agents.length }})
-          </h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto custom-scrollbar">
-            <div v-for="agent in agents" :key="agent.name" 
-                 class="group p-4 bg-slate-900/50 rounded-xl border border-slate-700/50 hover:border-blue-500/50 transition-all cursor-default">
-              <div class="flex justify-between items-start mb-2">
-                <h3 class="font-medium text-blue-300 group-hover:text-blue-200 transition-colors">{{ agent.name }}</h3>
-                <span class="text-xs px-2 py-1 bg-slate-800 rounded text-slate-400 border border-slate-700">{{ agent.type }}</span>
-              </div>
-              <p class="text-sm text-slate-400 line-clamp-2">{{ agent.description }}</p>
-            </div>
-          </div>
-        </div>
+    <!-- 智能水平走势图 -->
+    <MonitorIntelligenceChart />
 
-        <!-- Test Runner -->
-        <div class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 backdrop-blur-sm">
-          <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span class="text-2xl">🧪</span> 功能验证测试
-          </h2>
-          <div class="flex gap-4">
-            <button 
-              @click="runTest" 
-              class="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-xl font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
-              :disabled="testing"
-            >
-              <span v-if="testing" class="animate-spin">⏳</span>
-              <span v-else>▶️</span>
-              {{ testing ? '正在执行测试...' : '运行随机测试样例' }}
-            </button>
-            <div v-if="testResult" class="flex-1 bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 font-mono text-sm overflow-x-auto">
-              <div class="flex items-center gap-2 mb-2">
-                <span :class="testResult.success ? 'text-green-400' : 'text-red-400'">
-                  {{ testResult.success ? '✅ 测试通过' : '❌ 测试失败' }}
-                </span>
-                <span class="text-slate-500 text-xs">{{ testResult.timestamp }}</span>
-              </div>
-              <p class="text-slate-300">{{ testResult.message }}</p>
-            </div>
-          </div>
-        </div>
-
+    <!-- 两列布局 -->
+    <div class="monitor-grid">
+      <!-- 左侧：实时进化动态 -->
+      <div class="monitor-col">
+        <MonitorEvolutionStream />
       </div>
 
-      <!-- Right Column: Skills & System -->
-      <div class="space-y-8">
-        
-        <!-- Active Skills -->
-        <div class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 backdrop-blur-sm">
-          <h2 class="text-xl font-semibold mb-6 flex items-center gap-2">
-            <span class="text-2xl">⚡</span> 核心能力 (Active Skills)
-          </h2>
-          <div class="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
-            <div v-for="skill in skills" :key="skill.name" 
-                 class="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50 flex flex-col gap-2">
-              <div class="flex justify-between items-center">
-                <span class="font-medium text-purple-300">{{ skill.name }}</span>
-                <span class="text-xs text-slate-500">{{ skill.tools.length }} 个工具</span>
-              </div>
-              <p class="text-xs text-slate-400 line-clamp-2">{{ skill.description }}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- System Status -->
-        <div class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 backdrop-blur-sm">
-          <h2 class="text-xl font-semibold mb-4">系统状态</h2>
-          <div class="space-y-4">
-            <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
-              <span class="text-slate-400">版本</span>
-              <span class="font-mono text-sm">{{ overview?.version }}</span>
-            </div>
-            <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
-              <span class="text-slate-400">模式</span>
-              <span class="text-blue-400 text-sm">{{ overview?.mode }}</span>
-            </div>
-            <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
-              <span class="text-slate-400">最后更新</span>
-              <span class="text-sm">{{ overview?.last_update }}</span>
-            </div>
-            <div class="mt-4">
-              <div class="text-xs text-slate-500 mb-2">健康检查项</div>
-              <div class="grid grid-cols-2 gap-2">
-                <div v-for="(ok, check) in health?.checks" :key="check" 
-                     class="flex items-center gap-2 text-xs">
-                  <span :class="ok ? 'text-green-500' : 'text-red-500'">●</span>
-                  <span class="text-slate-300">{{ check }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Description -->
-        <div class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 backdrop-blur-sm">
-          <h2 class="text-xl font-semibold mb-4">关于系统</h2>
-          <p class="text-sm text-slate-400 leading-relaxed">
-            Claude Dev Team v3.0 是一个完全由 LLM 驱动的智能协作系统。它不再依赖传统的固定算法，而是通过深度推理、自适应学习和实时进化来处理复杂的软件开发任务。系统能够自动识别模式、优化策略，并随着使用不断提升性能。
-          </p>
-        </div>
-
+      <!-- 右侧：Agent 性能监控 -->
+      <div class="monitor-col">
+        <MonitorAgentProgress />
       </div>
     </div>
+
+    <!-- 知识图谱 -->
+    <MonitorKnowledgeGraph />
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import * as api from '@/services/monitor'
-
-const loading = ref(false)
-const testing = ref(false)
-const overview = ref<api.SystemOverview>()
-const agents = ref<api.AgentData[]>([])
-const skills = ref<api.SkillData[]>([])
-const health = ref<api.HealthCheck>()
-const testResult = ref<{ success: boolean; message: string; timestamp: string } | null>(null)
-
-const loadData = async () => {
-  loading.value = true
-  try {
-    const [ov, ag, sk, he] = await Promise.all([
-      api.getSystemOverview(),
-      api.getAgents(),
-      api.getSkills(),
-      api.checkHealth()
-    ])
-    overview.value = ov
-    agents.value = ag
-    skills.value = sk
-    health.value = he
-  } catch (e) {
-    console.error(e)
-  } finally {
-    loading.value = false
-  }
-}
-
-const runTest = async () => {
-  testing.value = true
-  testResult.value = null
-  
-  // 模拟随机测试用例
-  const testCases = [
-    '验证 LLM 任务分解能力...',
-    '测试并行 Agent 协作效率...',
-    '检查代码质量评估准确性...',
-    '验证自适应进化机制...'
-  ]
-  const randomCase = testCases[Math.floor(Math.random() * testCases.length)]
-  
-  // 模拟测试延迟
-  await new Promise(resolve => setTimeout(resolve, 2000))
-  
-  testResult.value = {
-    success: true,
-    message: `${randomCase} 执行成功！性能指标符合预期 (98%)`,
-    timestamp: new Date().toLocaleTimeString()
-  }
-  testing.value = false
-}
-
-onMounted(loadData)
-</script>
-
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+.monitor-page {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
 }
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
+
+.monitor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
+
+.monitor-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+
+.monitor-title .icon {
+  font-size: 32px;
+}
+
+.monitor-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.ws-status {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ws-status.connected {
+  background: #d4edda;
+  color: #155724;
+}
+
+.ws-status.disconnected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.refresh-btn {
+  padding: 10px 20px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background: #5568d3;
+  transform: translateY(-2px);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.monitor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.monitor-col {
+  min-height: 400px;
+}
+
+@media (max-width: 1024px) {
+  .monitor-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

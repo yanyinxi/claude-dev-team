@@ -1,188 +1,304 @@
 """
-Claude Dev Team v3.0 监控系统 - API 路由
+监控系统 - API 路由
 
-提供基于 LLM 驱动的智能协作系统运行状态监控接口。
+功能：
+1. 智能水平走势 API
+2. 进化事件流 API
+3. 智能诊断 API
+4. 一键修复 API
+5. Agent 性能 API
+6. 知识图谱 API
+7. WebSocket 实时推送
+
+路由前缀: /api/v1/monitor
 """
 
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, HTTPException
+from typing import List, Optional
+from datetime import datetime, timedelta
 import json
-from pathlib import Path
-from datetime import datetime
-from fastapi import APIRouter
-from pydantic import BaseModel
-from typing import List
 
-router = APIRouter()
+from models.monitor_schema import (
+    IntelligenceTrendResponse,
+    IntelligenceScore,
+    Milestone,
+    EvolutionStreamResponse,
+    DiagnosisResponse,
+    DiagnosisIssue,
+    FixRequest,
+    FixResult,
+    AgentPerformanceResponse,
+    KnowledgeGraphResponse
+)
+from services.monitor_intelligence import IntelligenceCalculator
+from services.monitor_diagnosis import DiagnosisService
+from services.monitor_service import MonitorService
 
-# 项目路径配置
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent
-CLAUDE_DIR = PROJECT_ROOT / ".claude"
-AGENTS_DIR = CLAUDE_DIR / "agents"
-SKILLS_DIR = CLAUDE_DIR / "skills"
-SETTINGS_FILE = CLAUDE_DIR / "settings.json"
-TEST_REPORT_FILE = CLAUDE_DIR / "test-report.md"
 
-class PerformanceMetric(BaseModel):
-    name: str
-    value: str
-    target: str
-    status: str
+# 创建路由器
+router = APIRouter(prefix="/monitor", tags=["监控"])
 
-class SystemOverview(BaseModel):
-    version: str = "v3.0"
-    mode: str = "LLM 驱动 (LLM-Driven)"
-    status: str = "在线 (Active)"
-    last_update: str
-    metrics: List[PerformanceMetric]
+# 初始化服务
+intelligence_calculator = IntelligenceCalculator()
+diagnosis_service = DiagnosisService()
+monitor_service = MonitorService()
 
-class AgentData(BaseModel):
-    name: str
-    description: str
-    type: str = "LLM 增强 (LLM-Enhanced)"
-    updated: str
 
-class SkillData(BaseModel):
-    name: str
-    description: str
-    tools: List[str]
+# ==================== WebSocket 连接管理器 ====================
 
-@router.get("/overview")
-async def get_system_overview() -> SystemOverview:
-    """获取系统概览和性能指标"""
-    metrics = []
-    last_update = datetime.now().strftime("%Y-%m-%d %H:%M")
-    
-    # 尝试从测试报告读取最新指标
-    if TEST_REPORT_FILE.exists():
-        content = TEST_REPORT_FILE.read_text(encoding="utf-8")
-        if "平均响应时间" in content:
-            metrics.append(PerformanceMetric(name="响应速度", value="18s", target="≤20s", status="pass"))
-        if "质量评估准确性" in content:
-            metrics.append(PerformanceMetric(name="质量评估", value="97%", target="≥95%", status="pass"))
-        if "学习效率提升" in content:
-            metrics.append(PerformanceMetric(name="学习效率", value="+22%", target="≥5%", status="pass"))
-    
-    # 如果没有报告，使用默认 v3.0 目标
-    if not metrics:
-        metrics = [
-            PerformanceMetric(name="协作效率", value="95%", target="≥95%", status="pass"),
-            PerformanceMetric(name="质量评估", value="98%", target="≥95%", status="pass"),
-            PerformanceMetric(name="学习速度", value="96%", target="≥95%", status="pass"),
-            PerformanceMetric(name="Agent 识别", value="99%", target="≥95%", status="pass"),
-        ]
+class ConnectionManager:
+    """WebSocket 连接管理器"""
 
-    return SystemOverview(
-        version="v3.0",
-        mode="LLM 驱动 (LLM-Driven)",
-        status="在线 (Online)",
-        last_update=last_update,
-        metrics=metrics
-    )
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
 
-@router.get("/agents")
-async def get_agents() -> List[AgentData]:
-    """获取智能 Agent 列表"""
-    agents = []
-    if AGENTS_DIR.exists():
-        for f in AGENTS_DIR.glob("*.md"):
-            content = f.read_text(encoding="utf-8")
-            name = f.stem
-            desc = "AI Agent"
-            for line in content.split("\n"):
-                if line.startswith("description:"):
-                    desc = line.replace("description:", "").strip()
-                    break
-            
-            # 中文名称映射
-            name_map = {
-                "orchestrator": "主协调器",
-                "frontend-developer": "前端开发",
-                "backend-developer": "后端开发",
-                "test": "测试工程师",
-                "code-reviewer": "代码审查",
-                "product-manager": "产品经理",
-                "tech-lead": "技术负责人",
-                "strategy-selector": "策略选择器",
-                "self-play-trainer": "自博弈训练器",
-                "evolver": "进化引擎",
-                "progress-viewer": "进度查看"
-            }
-            display_name = name_map.get(name, name)
-            
-            agents.append(AgentData(
-                name=display_name,
-                description=desc[:100],
-                updated=datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d")
+    async def connect(self, websocket: WebSocket):
+        """接受新连接"""
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        """断开连接"""
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: dict):
+        """广播消息到所有连接"""
+        disconnected = []
+        for connection in self.active_connections:
+            try:
+                await connection.send_json(message)
+            except Exception:
+                # 连接已断开，标记移除
+                disconnected.append(connection)
+
+        # 移除断开的连接
+        for conn in disconnected:
+            self.disconnect(conn)
+
+
+# 全局连接管理器
+manager = ConnectionManager()
+
+
+# ==================== REST API 接口 ====================
+
+@router.get("/intelligence-trend", response_model=IntelligenceTrendResponse)
+async def get_intelligence_trend(days: Optional[str] = Query("7", description="时间范围: 7/30/all")):
+    """
+    获取智能水平走势数据
+
+    Args:
+        days: 时间范围，默认 7 天，可选 7/30/all
+
+    Returns:
+        IntelligenceTrendResponse: 智能水平走势数据
+    """
+    try:
+        # 计算当前智能水平
+        current_score = intelligence_calculator.calculate_intelligence_score()
+
+        # 模拟历史数据（实际应从数据库查询）
+        # 这里简化处理，生成最近 7 天的数据
+        trend_data = []
+        days_count = 7 if days == "7" else (30 if days == "30" else 90)
+
+        for i in range(days_count, 0, -1):
+            timestamp = datetime.now() - timedelta(days=i)
+            # 模拟历史分数（实际应从数据库查询）
+            score_variation = (i % 3) * 0.1
+            trend_data.append(IntelligenceScore(
+                timestamp=timestamp,
+                intelligence_score=max(current_score.intelligence_score - score_variation, 0),
+                strategy_weight=max(current_score.strategy_weight - score_variation * 0.1, 0),
+                knowledge_richness=max(current_score.knowledge_richness - score_variation * 0.1, 0),
+                quality_trend=max(current_score.quality_trend - score_variation * 0.1, 0),
+                evolution_frequency=max(current_score.evolution_frequency - score_variation * 0.1, 0)
             ))
-    return sorted(agents, key=lambda x: x.name)
 
-@router.get("/skills")
-async def get_skills() -> List[SkillData]:
-    """获取能力(Skills)列表"""
-    skills = []
-    if SKILLS_DIR.exists():
-        for skill_dir in SKILLS_DIR.iterdir():
-            if skill_dir.is_dir():
-                skill_file = skill_dir / "SKILL.md"
-                if skill_file.exists():
-                    content = skill_file.read_text(encoding="utf-8")
-                    desc = "Skill Capability"
-                    tools = []
-                    
-                    for line in content.split("\n"):
-                        if line.startswith("description:"):
-                            desc = line.replace("description:", "").strip()
-                        if line.startswith("allowed-tools:"):
-                            tools_str = line.replace("allowed-tools:", "").strip()
-                            tools = [t.strip() for t in tools_str.split(",")]
-                    
-                    # 中文名称映射
-                    name_map = {
-                        "llm-driven-collaboration": "LLM 智能协作",
-                        "requirement-analysis": "需求分析",
-                        "architecture-design": "架构设计",
-                        "api-design": "API 设计",
-                        "code-quality": "代码质量",
-                        "task-distribution": "任务分配",
-                        "testing": "测试执行"
-                    }
-                    display_name = name_map.get(skill_dir.name, skill_dir.name)
-                            
-                    skills.append(SkillData(
-                        name=display_name,
-                        description=desc[:100],
-                        tools=tools
-                    ))
-    return sorted(skills, key=lambda x: x.name)
+        # 添加当前数据
+        trend_data.append(current_score)
 
-@router.get("/health")
-async def health_check():
-    """系统健康检查"""
-    checks = {
-        "配置检查 (Settings)": False,
-        "Hooks 配置": False,
-        "技能加载 (Skills)": False,
-        "Agents 就绪": False
-    }
-    
-    if SETTINGS_FILE.exists():
-        try:
-            settings = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
-            checks["配置检查 (Settings)"] = True
-            if "hooks" in settings and "SubagentStop" in settings["hooks"]:
-                checks["Hooks 配置"] = True
-        except:
-            pass
-            
-    if AGENTS_DIR.exists() and list(AGENTS_DIR.glob("*.md")):
-        checks["Agents 就绪"] = True
-    if SKILLS_DIR.exists() and list(SKILLS_DIR.iterdir()):
-        checks["技能加载 (Skills)"] = True
-        
-    all_healthy = all(checks.values())
-    
-    return {
-        "status": "healthy" if all_healthy else "degraded",
-        "checks": checks,
-        "timestamp": datetime.now().isoformat(),
-        "version": "v3.0"
-    }
+        # 识别里程碑
+        milestones = intelligence_calculator.identify_milestones()
+
+        return IntelligenceTrendResponse(
+            trend=trend_data,
+            milestones=milestones
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取智能水平走势失败: {str(e)}")
+
+
+@router.get("/evolution-stream", response_model=EvolutionStreamResponse)
+async def get_evolution_stream(
+    limit: int = Query(50, description="每页数量"),
+    offset: int = Query(0, description="偏移量")
+):
+    """
+    获取进化事件流
+
+    Args:
+        limit: 每页数量，默认 50
+        offset: 偏移量，默认 0
+
+    Returns:
+        EvolutionStreamResponse: 进化事件流数据
+    """
+    try:
+        return await monitor_service.get_evolution_stream(limit=limit, offset=offset)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取进化事件流失败: {str(e)}")
+
+
+@router.get("/diagnosis", response_model=DiagnosisResponse)
+async def get_diagnosis():
+    """
+    获取智能诊断结果
+
+    Returns:
+        DiagnosisResponse: 诊断结果
+    """
+    try:
+        # 执行诊断
+        issues = await diagnosis_service.run_diagnosis()
+
+        # 计算下次诊断时间（每小时执行一次）
+        now = datetime.now()
+        next_diagnosis_time = now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+
+        return DiagnosisResponse(
+            last_diagnosis_time=now,
+            next_diagnosis_time=next_diagnosis_time,
+            issues=issues
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"执行诊断失败: {str(e)}")
+
+
+@router.post("/diagnosis/fix", response_model=FixResult)
+async def fix_issue(request: FixRequest):
+    """
+    一键修复问题
+
+    Args:
+        request: 修复请求（包含 issue_id）
+
+    Returns:
+        FixResult: 修复结果
+    """
+    try:
+        # 先获取问题详情
+        issues = await diagnosis_service.run_diagnosis()
+        issue = next((i for i in issues if i.id == request.issue_id), None)
+
+        if not issue:
+            raise HTTPException(status_code=404, detail=f"问题不存在: {request.issue_id}")
+
+        # 执行修复
+        result = await diagnosis_service.auto_fix_issue(request.issue_id, issue)
+        return result
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"修复失败: {str(e)}")
+
+
+@router.get("/agents", response_model=AgentPerformanceResponse)
+async def get_agents(agent_type: str = Query("all", description="Agent 类型筛选")):
+    """
+    获取 Agent 性能数据
+
+    Args:
+        agent_type: Agent 类型筛选，默认 all
+
+    Returns:
+        AgentPerformanceResponse: Agent 性能数据
+    """
+    try:
+        agents = await monitor_service.get_agent_performance(agent_type=agent_type)
+        return AgentPerformanceResponse(agents=agents)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取 Agent 性能失败: {str(e)}")
+
+
+@router.get("/knowledge-graph", response_model=KnowledgeGraphResponse)
+async def get_knowledge_graph(
+    category: str = Query("all", description="知识类型筛选"),
+    search: str = Query("", description="搜索关键词")
+):
+    """
+    获取知识图谱数据
+
+    Args:
+        category: 知识类型筛选，可选 strategy/best-practice/template/error-handling/all
+        search: 搜索关键词
+
+    Returns:
+        KnowledgeGraphResponse: 知识图谱数据
+    """
+    try:
+        return await monitor_service.get_knowledge_graph(category=category, search=search)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取知识图谱失败: {str(e)}")
+
+
+# ==================== WebSocket 接口 ====================
+
+@router.websocket("/ws/evolution")
+async def websocket_evolution_stream(
+    websocket: WebSocket,
+    token: str = Query(..., description="JWT Token")
+):
+    """
+    WebSocket 实时进化事件推送
+
+    认证: 通过 URL 参数传递 JWT Token
+
+    Args:
+        websocket: WebSocket 连接
+        token: JWT Token（实际应验证）
+    """
+    # TODO: 验证 Token
+    # try:
+    #     user = await verify_token(token)
+    # except:
+    #     await websocket.close(code=1008, reason="Unauthorized")
+    #     return
+
+    # 接受连接
+    await manager.connect(websocket)
+
+    try:
+        while True:
+            # 接收客户端消息（心跳）
+            data = await websocket.receive_text()
+            message = json.loads(data)
+
+            if message.get("type") == "ping":
+                # 响应心跳
+                await websocket.send_json({"type": "pong"})
+
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception as e:
+        print(f"WebSocket 错误: {e}")
+        manager.disconnect(websocket)
+
+
+# ==================== 辅助函数 ====================
+
+async def broadcast_evolution_event(event: dict):
+    """
+    广播进化事件到所有 WebSocket 连接
+
+    Args:
+        event: 进化事件数据
+    """
+    await manager.broadcast({
+        "type": "evolution_event",
+        "data": event
+    })
