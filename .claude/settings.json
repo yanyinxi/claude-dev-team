@@ -6,10 +6,11 @@
       "Bash(git diff:*)",     // 允许查看 Git 差异
       "Bash(git log:*)",      // 允许查看 Git 日志
       "Read(*)",              // 允许读取所有文件
-      "Write(main/docs/**)",  // 允许写入文档目录
-      "Write(main/src/**)",   // 允许写入源码目录
-      "Write(main/tests/**)", // 允许写入测试目录
-      "Write(examples/**)",   // 允许写入示例目录
+      "Write(main/docs/**)",      // 允许写入文档目录
+      "Write(main/backend/**)",   // 允许写入后端源码目录
+      "Write(main/frontend/**)",  // 允许写入前端源码目录
+      "Write(main/tests/**)",     // 允许写入测试目录
+      "Write(main/examples/**)",  // 允许写入示例目录
       "Edit(*)",              // 允许编辑所有文件
       "Grep(*)",              // 允许搜索文件内容
       "Glob(*)",              // 允许搜索文件路径

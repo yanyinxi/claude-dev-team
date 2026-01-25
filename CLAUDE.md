@@ -17,10 +17,10 @@ Claude Dev Team 是基于 Claude Code 原生能力构建的 AI 开发团队协�
 
 ### 示例项目
 
-`examples/todo_app/` 目录包含完整的全栈示例：
+`main/examples/todo_app/` 目录包含完整的全栈示例：
 
 ```bash
-cd examples/todo_app
+cd main/examples/todo_app
 npm install              # 安装依赖
 npm run init-db          # 初始化数据库
 npm start                # 启动服务器 (http://localhost:3000)
@@ -138,9 +138,10 @@ evolver (提炼到全局知识库)
       "Bash(git log:*)",
       "Read(*)",
       "Write(main/docs/**)",
-      "Write(main/src/**)",
+      "Write(main/backend/**)",
+      "Write(main/frontend/**)",
       "Write(main/tests/**)",
-      "Write(examples/**)",
+      "Write(main/examples/**)",
       "Edit(*)",
       "Grep(*)",
       "Glob(*)",

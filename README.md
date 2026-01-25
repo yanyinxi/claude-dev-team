@@ -99,7 +99,7 @@ claude-dev-team/
 │   └── rules/                  # 动态生成的规则文件
 ├── .github/workflows/
 │   └── test-llm-collaboration.yml # 🆕 CI/CD测试流程
-├── examples/                    # 示例项目
+├── examples/                    # 示例项目（已迁移到 main/examples）
 ├── main/                        # 核心应用代码
 └── docs/                        # 项目文档
 ```
