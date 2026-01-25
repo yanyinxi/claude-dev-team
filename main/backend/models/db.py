@@ -250,3 +250,24 @@ class MonitorAgentPerformance(Base):
     started_at = Column(DateTime, nullable=False, index=True)  # 开始时间（带索引）
     completed_at = Column(DateTime, nullable=True)  # 完成时间
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+
+class MonitorEvolutionEvent(Base):
+    """进化事件记录表
+
+    记录系统的进化事件，包括策略更新、知识学习、规则优化等。
+    用于监控系统的学习和进化历史。
+    """
+    __tablename__ = "monitor_evolution_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(String(50), nullable=False, unique=True)  # 事件唯一标识
+    timestamp = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)  # 事件时间（带索引）
+    agent = Column(String(100), nullable=False, index=True)  # Agent 名称（带索引）
+    strategy = Column(String(100), nullable=False, index=True)  # 策略类型（带索引）
+    description = Column(Text, nullable=False)  # 事件描述
+    reward = Column(Integer, nullable=False, default=0)  # 奖励分数 (0-10)
+    diff_before = Column(Text, nullable=True)  # 改进前的做法
+    diff_after = Column(Text, nullable=True)  # 改进后的做法
+    diff_impact = Column(Text, nullable=True)  # 改进带来的影响
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)

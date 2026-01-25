@@ -2,12 +2,13 @@
 监控系统 - 通用监控服务
 
 功能：
-1. 解析进化事件流
+1. 解析进化事件流（从数据库读取）
 2. 统计 Agent 性能
 3. 解析知识图谱
 4. 提供数据查询接口
 
 数据来源：
+- monitor_evolution_events 表（进化事件）
 - .claude/rules/*.md (策略规则)
 - .claude/agents/*.md (Agent 配置)
 - .claude/skills/*/SKILL.md (技能知识)
@@ -22,6 +23,7 @@ from typing import List, Dict
 
 from models.monitor_schema import (
     EvolutionEvent,
+    EvolutionDiff,
     EvolutionStreamResponse,
     AgentPerformance,
     PerformanceMetrics,
@@ -29,6 +31,9 @@ from models.monitor_schema import (
     KnowledgeCategory,
     KnowledgeGraphResponse
 )
+from models.db import MonitorEvolutionEvent
+from core.database import get_db
+from sqlalchemy import select, desc
 
 
 class MonitorService:
@@ -46,7 +51,7 @@ class MonitorService:
         """
         获取进化事件流
 
-        数据来源: .claude/rules/*.md 文件
+        数据来源: monitor_evolution_events 表
 
         Args:
             limit: 每页数量
@@ -56,56 +61,50 @@ class MonitorService:
             EvolutionStreamResponse: 进化事件流响应
         """
         events = []
-        rules_dir = self.project_root / ".claude" / "rules"
 
-        if not rules_dir.exists():
-            return EvolutionStreamResponse(total=0, events=[])
+        # 从数据库读取进化事件
+        async for db in get_db():
+            # 查询总数
+            count_query = select(MonitorEvolutionEvent)
+            result = await db.execute(count_query)
+            all_events = result.scalars().all()
+            total = len(all_events)
 
-        # 解析所有规则文件
-        for rule_file in rules_dir.glob("*.md"):
-            try:
-                content = rule_file.read_text(encoding="utf-8")
+            # 查询分页数据（按时间倒序）
+            query = (
+                select(MonitorEvolutionEvent)
+                .order_by(desc(MonitorEvolutionEvent.timestamp))
+                .limit(limit)
+                .offset(offset)
+            )
+            result = await db.execute(query)
+            db_events = result.scalars().all()
 
-                # 解析策略关键词
-                strategy_match = re.search(r"策略关键词.*?:\s*(.+)", content)
-                strategy = strategy_match.group(1).strip() if strategy_match else "unknown"
+            # 转换为 Pydantic 模型
+            for db_event in db_events:
+                # 构建 diff 对象（如果有）
+                diff = None
+                if db_event.diff_before and db_event.diff_after:
+                    diff = EvolutionDiff(
+                        before=db_event.diff_before,
+                        after=db_event.diff_after,
+                        impact=db_event.diff_impact or ""
+                    )
 
-                # 解析洞察记录
-                # 匹配格式: ### ✅ 最佳实践\n\n- **Agent**: backend-developer\n- **描述**: xxx
-                insight_pattern = r"### (.+?)\n\n- \*\*Agent\*\*:\s*(.+?)\n- \*\*描述\*\*:\s*(.+?)(?=\n\n|\Z)"
-                insights = re.findall(insight_pattern, content, re.DOTALL)
+                events.append(EvolutionEvent(
+                    id=db_event.event_id,
+                    timestamp=db_event.timestamp,
+                    agent=db_event.agent,
+                    strategy=db_event.strategy,
+                    description=db_event.description,
+                    reward=db_event.reward / 10.0,  # 转换回 0-10 范围
+                    diff=diff
+                ))
 
-                for insight_type, agent, description in insights:
-                    # 解析平均奖励（如果有）
-                    reward_match = re.search(r"平均奖励.*?(\d+\.?\d*)/10", content)
-                    reward = float(reward_match.group(1)) if reward_match else 0.0
-
-                    # 获取文件修改时间作为事件时间
-                    mtime = datetime.fromtimestamp(rule_file.stat().st_mtime)
-
-                    events.append(EvolutionEvent(
-                        id=f"evt_{uuid.uuid4().hex[:8]}",
-                        timestamp=mtime,
-                        agent=agent.strip(),
-                        strategy=strategy,
-                        description=description.strip(),
-                        reward=reward
-                    ))
-
-            except Exception:
-                continue
-
-        # 按时间倒序排序
-        events.sort(key=lambda e: e.timestamp, reverse=True)
-
-        # 分页
-        total = len(events)
-        events = events[offset:offset + limit]
-
-        return EvolutionStreamResponse(
-            total=total,
-            events=events
-        )
+            return EvolutionStreamResponse(
+                total=total,
+                events=events
+            )
 
     async def get_agent_performance(
         self,
