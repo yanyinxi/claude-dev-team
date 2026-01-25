@@ -185,3 +185,68 @@ class AlarmSession(Base):
     # 关系
     user = relationship("User")
     rule = relationship("AlarmRule", back_populates="sessions")
+
+
+class MonitorIntelligence(Base):
+    """智能水平历史记录表
+
+    记录系统智能水平的演化历史，用于监控系统的学习和进化能力。
+    智能水平由多个维度组成：策略权重、知识丰富度、质量趋势、进化频率。
+    """
+    __tablename__ = "monitor_intelligence"
+
+    id = Column(Integer, primary_key=True, index=True)
+    timestamp = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)  # 记录时间（带索引）
+    intelligence_score = Column(Integer, nullable=False)  # 智能水平总分 (0-10)
+    strategy_weight = Column(Integer, nullable=False)  # 策略权重 (0-1)
+    knowledge_richness = Column(Integer, nullable=False)  # 知识丰富度 (0-1)
+    quality_trend = Column(Integer, nullable=False)  # 质量趋势 (0-1)
+    evolution_frequency = Column(Integer, nullable=False)  # 进化频率 (0-1)
+    milestone_event = Column(Text, nullable=True)  # 里程碑事件（可选）
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+
+class MonitorDiagnosis(Base):
+    """诊断记录表
+
+    记录系统自动诊断发现的问题，包括性能、安全、质量、架构等方面。
+    支持自动修复和手动修复，跟踪问题状态。
+    """
+    __tablename__ = "monitor_diagnosis"
+
+    id = Column(Integer, primary_key=True, index=True)
+    diagnosis_time = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)  # 诊断时间（带索引）
+    issue_id = Column(String(50), nullable=False, unique=True)  # 问题唯一标识
+    severity = Column(String(20), nullable=False, index=True)  # 严重程度: Critical/Important/Suggestion（带索引）
+    category = Column(String(50), nullable=False, index=True)  # 问题分类: performance/security/quality/architecture（带索引）
+    title = Column(String(200), nullable=False)  # 问题标题
+    description = Column(Text, nullable=False)  # 问题描述
+    location = Column(String(500), nullable=True)  # 文件位置
+    suggestion = Column(Text, nullable=True)  # 修复建议
+    auto_fixable = Column(Boolean, default=False)  # 是否可自动修复
+    fix_code = Column(Text, nullable=True)  # 修复代码
+    status = Column(String(20), default="open")  # 状态: open/fixed/ignored
+    fixed_at = Column(DateTime, nullable=True)  # 修复时间
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+
+class MonitorAgentPerformance(Base):
+    """Agent 性能记录表
+
+    记录各个 Agent 的任务执行情况，包括任务状态、进度、耗时、成功率等。
+    用于监控 Agent 的工作效率和健康状态。
+    """
+    __tablename__ = "monitor_agent_performance"
+
+    id = Column(Integer, primary_key=True, index=True)
+    agent_name = Column(String(100), nullable=False, index=True)  # Agent 名称（带索引）
+    agent_type = Column(String(50), nullable=False)  # Agent 类型: developer/reviewer/tester/orchestrator
+    task_id = Column(String(100), nullable=True)  # 任务 ID
+    status = Column(String(20), nullable=False)  # 状态: working/completed/failed
+    progress = Column(Integer, default=0)  # 进度 (0-100)
+    duration_seconds = Column(Integer, nullable=True)  # 任务耗时（秒）
+    success = Column(Boolean, nullable=True)  # 是否成功
+    error_message = Column(Text, nullable=True)  # 错误信息
+    started_at = Column(DateTime, nullable=False, index=True)  # 开始时间（带索引）
+    completed_at = Column(DateTime, nullable=True)  # 完成时间
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)

@@ -251,16 +251,16 @@ async def get_knowledge_graph(
 @router.websocket("/ws/evolution")
 async def websocket_evolution_stream(
     websocket: WebSocket,
-    token: str = Query(..., description="JWT Token")
+    token: Optional[str] = Query(None, description="JWT Token (可选)")
 ):
     """
     WebSocket 实时进化事件推送
 
-    认证: 通过 URL 参数传递 JWT Token
+    认证: 通过 URL 参数传递 JWT Token（当前为可选，待实现验证逻辑）
 
     Args:
         websocket: WebSocket 连接
-        token: JWT Token（实际应验证）
+        token: JWT Token（可选，实际应验证）
     """
     # TODO: 验证 Token
     # try:
