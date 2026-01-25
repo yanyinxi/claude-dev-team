@@ -1,0 +1,8 @@
+# Claude SDK Client 示例依赖
+
+# 核心依赖
+anthropic>=0.40.0  # Claude Python SDK
+
+# 可选依赖（用于高级示例）
+python-dotenv>=1.0.0  # 环境变量管理
+pydantic>=2.0.0  # 数据验证
