@@ -1,0 +1,80 @@
+{
+  "timestamp": "20260124_174207",
+  "task_description": "实现用户登录功能",
+  "results": [
+    {
+      "variant_id": 1,
+      "variant_name": "default_parallel_high",
+      "success": true,
+      "duration": 1.0002059936523438,
+      "quality_score": 9.691,
+      "result": {
+        "files_modified": 5,
+        "tests_passed": 8,
+        "tests_failed": 0,
+        "code_quality": 8.5,
+        "agent_coordination": 7.8,
+        "task_completion": 9.0
+      },
+      "config": {
+        "max_parallel_agents": 5
+      }
+    },
+    {
+      "variant_id": 2,
+      "variant_name": "default_granular",
+      "success": true,
+      "duration": 1.5002412796020508,
+      "quality_score": 8.81,
+      "result": {
+        "files_modified": 5,
+        "tests_passed": 8,
+        "tests_failed": 0,
+        "code_quality": 8.5,
+        "agent_coordination": 7.8,
+        "task_completion": 9.0
+      },
+      "config": {
+        "max_parallel_agents": 3,
+        "task_granularity": "fine"
+      }
+    },
+    {
+      "variant_id": 3,
+      "variant_name": "default_sequential",
+      "success": true,
+      "duration": 2.0011680126190186,
+      "quality_score": 8.3695,
+      "result": {
+        "files_modified": 5,
+        "tests_passed": 8,
+        "tests_failed": 0,
+        "code_quality": 8.5,
+        "agent_coordination": 7.8,
+        "task_completion": 9.0
+      },
+      "config": {
+        "max_parallel_agents": 1
+      }
+    },
+    {
+      "variant_id": 4,
+      "variant_name": "default_hybrid",
+      "success": true,
+      "duration": 1.2001640796661377,
+      "quality_score": 8.81,
+      "result": {
+        "files_modified": 5,
+        "tests_passed": 8,
+        "tests_failed": 0,
+        "code_quality": 8.5,
+        "agent_coordination": 7.8,
+        "task_completion": 9.0
+      },
+      "config": {
+        "max_parallel_agents": 3,
+        "task_granularity": "adaptive"
+      }
+    }
+  ]
+}
