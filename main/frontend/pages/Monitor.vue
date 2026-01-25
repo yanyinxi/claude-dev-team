@@ -2,7 +2,23 @@
 监控系统主页面
 =====================================================
 功能：监控中心主页面，包含 5 个子组件
-职责：布局管理、WebSocket 连接管理、全局状态初始化
+职责：
+1. 布局管理：组织 5 个监控子组件的布局
+2. WebSocket 连接管理：建立和维护实时数据推送连接
+3. 全局状态初始化：页面加载时获取所有监控数据
+4. 数据刷新：提供手动刷新所有数据的功能
+
+子组件：
+- MonitorIntelligenceChart：智能水平走势图
+- MonitorDiagnosis：智能诊断中心
+- MonitorEvolutionStream：实时进化动态
+- MonitorAgentProgress：Agent 性能监控
+- MonitorKnowledgeGraph：知识图谱
+
+数据流：
+1. 页面加载 → 并行获取所有数据 → 存入 monitorStore
+2. WebSocket 连接 → 实时推送进化事件 → 更新 monitorStore
+3. 手动刷新 → 重新获取所有数据 → 更新 monitorStore
 ===================================================== -->
 
 <script setup lang="ts">
@@ -28,17 +44,33 @@ import MonitorKnowledgeGraph from '@/components/MonitorKnowledgeGraph.vue'
 const monitorStore = useMonitorStore()
 const userStore = useUserStore()
 
-// WebSocket 连接
+// ==================== 响应式数据 ====================
+
+/**
+ * WebSocket 连接实例
+ * 用于接收实时进化事件推送
+ */
 const ws = ref<WebSocket | null>(null)
 
-// 刷新状态
+/**
+ * 刷新状态
+ * 控制刷新按钮的禁用状态和文本显示
+ */
 const refreshing = ref(false)
 
-// 功能说明展开状态
+/**
+ * 功能说明展开状态
+ * 控制功能说明卡片的展开/收起
+ */
 const showDescription = ref(true)
 
-// ==================== 生命周期 ====================
+// ==================== 生命周期钩子 ====================
 
+/**
+ * 组件挂载时
+ * 1. 并行加载所有监控数据
+ * 2. 建立 WebSocket 连接接收实时推送
+ */
 onMounted(async () => {
   // 初始化数据
   await loadAllData()
@@ -47,6 +79,10 @@ onMounted(async () => {
   connectWebSocket()
 })
 
+/**
+ * 组件卸载时
+ * 断开 WebSocket 连接，释放资源
+ */
 onUnmounted(() => {
   // 断开 WebSocket 连接
   if (ws.value) {
@@ -58,6 +94,14 @@ onUnmounted(() => {
 
 /**
  * 加载所有数据
+ * 并行加载 5 个监控模块的数据，提高加载效率
+ *
+ * 加载顺序（并行）：
+ * 1. 智能水平走势（最近 7 天）
+ * 2. 进化事件流（最近 50 条）
+ * 3. 智能诊断结果
+ * 4. Agent 性能数据
+ * 5. 知识图谱数据
  */
 async function loadAllData() {
   try {
@@ -76,6 +120,7 @@ async function loadAllData() {
 
 /**
  * 加载智能水平走势
+ * 获取最近 7 天的智能水平数据和里程碑事件
  */
 async function loadIntelligenceTrend() {
   monitorStore.setLoading('intelligence', true)
@@ -89,6 +134,7 @@ async function loadIntelligenceTrend() {
 
 /**
  * 加载进化事件流
+ * 获取最近 50 条进化事件记录
  */
 async function loadEvolutionStream() {
   monitorStore.setLoading('evolution', true)
@@ -102,6 +148,7 @@ async function loadEvolutionStream() {
 
 /**
  * 加载诊断结果
+ * 获取最新的智能诊断结果和问题列表
  */
 async function loadDiagnosis() {
   monitorStore.setLoading('diagnosis', true)
@@ -115,6 +162,7 @@ async function loadDiagnosis() {
 
 /**
  * 加载 Agent 性能
+ * 获取所有 Agent 的性能数据和工作状态
  */
 async function loadAgentPerformance() {
   monitorStore.setLoading('agents', true)
@@ -128,6 +176,7 @@ async function loadAgentPerformance() {
 
 /**
  * 加载知识图谱
+ * 获取所有类型的知识条目
  */
 async function loadKnowledgeGraph() {
   monitorStore.setLoading('knowledge', true)
@@ -141,6 +190,13 @@ async function loadKnowledgeGraph() {
 
 /**
  * 建立 WebSocket 连接
+ * 连接到后端 WebSocket 服务，接收实时进化事件推送
+ *
+ * 功能：
+ * 1. 使用用户 Token 进行身份验证
+ * 2. 接收新的进化事件并更新 store
+ * 3. 维护连接状态（心跳保活）
+ * 4. 处理连接错误和断开
  */
 function connectWebSocket() {
   const token = userStore.token || 'guest'
@@ -169,6 +225,7 @@ function connectWebSocket() {
 
 /**
  * 刷新所有数据
+ * 手动触发重新加载所有监控数据
  */
 async function handleRefresh() {
   refreshing.value = true
