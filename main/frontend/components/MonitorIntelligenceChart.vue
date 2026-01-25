@@ -6,8 +6,10 @@
 ===================================================== -->
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useMonitorStore } from '@/stores/monitorStore'
+import * as echarts from 'echarts'
+import type { ECharts } from 'echarts'
 
 // ==================== 状态管理 ====================
 
@@ -15,6 +17,9 @@ const monitorStore = useMonitorStore()
 
 // 图表容器引用
 const chartRef = ref<HTMLDivElement | null>(null)
+
+// ECharts 实例
+let chartInstance: ECharts | null = null
 
 // 时间范围选择
 const timeRange = ref('7')
@@ -42,15 +47,212 @@ const milestones = computed(() => {
   return monitorStore.intelligenceTrend?.milestones || []
 })
 
+// ==================== 方法 ====================
+
+/**
+ * 初始化 ECharts 图表
+ */
+function initChart() {
+  // 使用 nextTick 确保 DOM 已经渲染
+  nextTick(() => {
+    if (!chartRef.value) {
+      console.warn('[ECharts] 图表容器未找到')
+      return
+    }
+
+    try {
+      // 创建 ECharts 实例
+      chartInstance = echarts.init(chartRef.value)
+
+      // 更新图表数据
+      updateChart()
+
+      // 监听窗口大小变化
+      window.addEventListener('resize', handleResize)
+    } catch (error) {
+      console.error('[ECharts] 初始化失败:', error)
+    }
+  })
+}
+
+/**
+ * 更新图表数据
+ */
+function updateChart() {
+  if (!chartInstance) {
+    console.warn('[ECharts] 图表实例不存在')
+    return
+  }
+
+  if (!trendData.value || trendData.value.length === 0) {
+    console.warn('[ECharts] 暂无数据')
+    return
+  }
+
+  try {
+    // 准备数据
+    const dates = trendData.value.map((item) => {
+      const date = new Date(item.timestamp)
+      return `${date.getMonth() + 1}/${date.getDate()}`
+    })
+
+    const scores = trendData.value.map((item) => item.intelligence_score)
+
+    // 准备里程碑标记数据
+    const milestoneMarks = milestones.value.map((milestone) => {
+      const date = new Date(milestone.timestamp)
+      return {
+        name: milestone.event,
+        xAxis: `${date.getMonth() + 1}/${date.getDate()}`,
+        yAxis: milestone.intelligence_score,
+        value: milestone.intelligence_score.toFixed(2)
+      }
+    })
+
+    // 配置图表选项
+    const option = {
+      tooltip: {
+        trigger: 'axis',
+        formatter: (params: any) => {
+          const data = params[0]
+          return `${data.axisValue}<br/>智能水平: ${data.value.toFixed(2)}`
+        }
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        top: '10%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: dates,
+        boundaryGap: false,
+        axisLine: {
+          lineStyle: {
+            color: '#999'
+          }
+        }
+      },
+      yAxis: {
+        type: 'value',
+        min: 0,
+        max: 10,
+        axisLine: {
+          lineStyle: {
+            color: '#999'
+          }
+        },
+        splitLine: {
+          lineStyle: {
+            color: '#eee'
+          }
+        }
+      },
+      series: [
+        {
+          name: '智能水平',
+          type: 'line',
+          smooth: true,
+          data: scores,
+          lineStyle: {
+            color: '#667eea',
+            width: 3
+          },
+          itemStyle: {
+            color: '#667eea'
+          },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(102, 126, 234, 0.3)' },
+                { offset: 1, color: 'rgba(102, 126, 234, 0.05)' }
+              ]
+            }
+          },
+          markPoint: {
+            data: milestoneMarks.map((mark) => ({
+              name: mark.name,
+              coord: [mark.xAxis, mark.yAxis],
+              value: mark.value,
+              symbol: 'pin',
+              symbolSize: 50,
+              itemStyle: {
+                color: '#ff6b6b'
+              },
+              label: {
+                show: true,
+                formatter: '{b}',
+                fontSize: 10
+              }
+            }))
+          }
+        }
+      ]
+    }
+
+    // 设置图表选项
+    chartInstance.setOption(option)
+  } catch (error) {
+    console.error('[ECharts] 更新图表失败:', error)
+  }
+}
+
+/**
+ * 处理窗口大小变化
+ */
+function handleResize() {
+  if (chartInstance) {
+    chartInstance.resize()
+  }
+}
+
+/**
+ * 销毁图表
+ */
+function destroyChart() {
+  if (chartInstance) {
+    chartInstance.dispose()
+    chartInstance = null
+  }
+  window.removeEventListener('resize', handleResize)
+}
+
 // ==================== 生命周期 ====================
 
 onMounted(() => {
-  // 初始化图表（简化版，实际应使用 ECharts）
-  console.log('[MonitorIntelligenceChart] 组件已挂载')
+  // 初始化图表
+  initChart()
 })
 
 onUnmounted(() => {
-  console.log('[MonitorIntelligenceChart] 组件已卸载')
+  // 销毁图表
+  destroyChart()
+})
+
+// ==================== 监听数据变化 ====================
+
+watch(trendData, () => {
+  // 数据变化时更新图表
+  updateChart()
+})
+
+watch(timeRange, async (newRange) => {
+  // 时间范围变化时重新加载数据
+  monitorStore.setLoading('intelligence', true)
+  try {
+    const { getIntelligenceTrend } = await import('@/services/monitor')
+    const data = await getIntelligenceTrend(newRange)
+    monitorStore.setIntelligenceTrend(data)
+  } finally {
+    monitorStore.setLoading('intelligence', false)
+  }
 })
 </script>
 
@@ -73,21 +275,13 @@ onUnmounted(() => {
       <div class="score-max">/ 10.0</div>
     </div>
 
-    <!-- 图表容器（简化版，实际应使用 ECharts） -->
+    <!-- 图表容器 -->
     <div ref="chartRef" class="chart-canvas">
       <div v-if="monitorStore.loading.intelligence" class="loading">
         加载中...
       </div>
       <div v-else-if="trendData.length === 0" class="empty">
         暂无数据
-      </div>
-      <div v-else class="chart-placeholder">
-        <p>📊 智能水平走势图</p>
-        <p class="hint">（需要集成 ECharts 库）</p>
-        <div class="data-summary">
-          <div>数据点数: {{ trendData.length }}</div>
-          <div>里程碑: {{ milestones.length }}</div>
-        </div>
       </div>
     </div>
 
@@ -170,7 +364,7 @@ onUnmounted(() => {
 }
 
 .chart-canvas {
-  height: 300px;
+  height: 400px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,29 +377,6 @@ onUnmounted(() => {
 .empty {
   color: #999;
   font-size: 16px;
-}
-
-.chart-placeholder {
-  text-align: center;
-  color: #666;
-}
-
-.chart-placeholder p {
-  margin: 10px 0;
-  font-size: 18px;
-}
-
-.hint {
-  font-size: 14px;
-  color: #999;
-}
-
-.data-summary {
-  margin-top: 20px;
-  display: flex;
-  gap: 30px;
-  justify-content: center;
-  font-size: 14px;
 }
 
 .milestones {

@@ -166,8 +166,8 @@ export interface KnowledgeGraphResponse {
  * @param days 时间范围（7/30/all）
  */
 export async function getIntelligenceTrend(days: string = '7'): Promise<IntelligenceTrendResponse> {
-  const response = await request.get(`/api/v1/monitor/intelligence-trend?days=${days}`)
-  return response.data
+  const response = await request.get(`/monitor/intelligence-trend?days=${days}`)
+  return response
 }
 
 /**
@@ -176,16 +176,16 @@ export async function getIntelligenceTrend(days: string = '7'): Promise<Intellig
  * @param offset 偏移量
  */
 export async function getEvolutionStream(limit: number = 50, offset: number = 0): Promise<EvolutionStreamResponse> {
-  const response = await request.get(`/api/v1/monitor/evolution-stream?limit=${limit}&offset=${offset}`)
-  return response.data
+  const response = await request.get(`/monitor/evolution-stream?limit=${limit}&offset=${offset}`)
+  return response
 }
 
 /**
  * 获取智能诊断结果
  */
 export async function getDiagnosis(): Promise<DiagnosisResponse> {
-  const response = await request.get('/api/v1/monitor/diagnosis')
-  return response.data
+  const response = await request.get('/monitor/diagnosis')
+  return response
 }
 
 /**
@@ -193,8 +193,8 @@ export async function getDiagnosis(): Promise<DiagnosisResponse> {
  * @param issueId 问题 ID
  */
 export async function fixIssue(issueId: string): Promise<FixResult> {
-  const response = await request.post('/api/v1/monitor/diagnosis/fix', { issue_id: issueId })
-  return response.data
+  const response = await request.post('/monitor/diagnosis/fix', { issue_id: issueId })
+  return response
 }
 
 /**
@@ -202,8 +202,8 @@ export async function fixIssue(issueId: string): Promise<FixResult> {
  * @param type Agent 类型筛选
  */
 export async function getAgentPerformance(type: string = 'all'): Promise<AgentPerformance[]> {
-  const response = await request.get(`/api/v1/monitor/agents?type=${type}`)
-  return response.data.agents
+  const response = await request.get(`/monitor/agents?type=${type}`)
+  return response.agents
 }
 
 /**
@@ -212,26 +212,33 @@ export async function getAgentPerformance(type: string = 'all'): Promise<AgentPe
  * @param search 搜索关键词
  */
 export async function getKnowledgeGraph(category: string = 'all', search: string = ''): Promise<KnowledgeGraphResponse> {
-  const response = await request.get(`/api/v1/monitor/knowledge-graph?category=${category}&search=${search}`)
-  return response.data
+  const response = await request.get(`/monitor/knowledge-graph?category=${category}&search=${search}`)
+  return response
 }
 
 /**
  * 创建 WebSocket 连接
  * @param token JWT Token
  * @param onMessage 消息回调
+ * @param onOpen 连接成功回调
  * @param onError 错误回调
+ * @param onClose 连接关闭回调
  */
 export function createWebSocket(
   token: string,
   onMessage: (event: EvolutionEvent) => void,
-  onError?: (error: Event) => void
+  onOpen?: () => void,
+  onError?: (error: Event) => void,
+  onClose?: () => void
 ): WebSocket {
-  const ws = new WebSocket(`ws://localhost:8000/ws/monitor/evolution?token=${token}`)
+  const ws = new WebSocket(`ws://localhost:8000/api/v1/monitor/ws/evolution?token=${token}`)
 
   ws.onopen = () => {
     console.log('[Monitor WebSocket] 连接成功')
-    
+
+    // 调用连接成功回调
+    onOpen?.()
+
     // 心跳保活（每 30 秒）
     setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
@@ -242,7 +249,7 @@ export function createWebSocket(
 
   ws.onmessage = (event) => {
     const message = JSON.parse(event.data)
-    
+
     if (message.type === 'evolution_event') {
       onMessage(message.data)
     } else if (message.type === 'pong') {
@@ -257,6 +264,7 @@ export function createWebSocket(
 
   ws.onclose = () => {
     console.log('[Monitor WebSocket] 连接关闭')
+    onClose?.()
   }
 
   return ws

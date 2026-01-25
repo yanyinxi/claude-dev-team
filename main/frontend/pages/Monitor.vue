@@ -34,6 +34,9 @@ const ws = ref<WebSocket | null>(null)
 // 刷新状态
 const refreshing = ref(false)
 
+// 功能说明展开状态
+const showDescription = ref(true)
+
 // ==================== 生命周期 ====================
 
 onMounted(async () => {
@@ -147,10 +150,18 @@ function connectWebSocket() {
     (event) => {
       // 接收到新的进化事件
       monitorStore.addEvolutionEvent(event)
+    },
+    () => {
+      // WebSocket 连接成功
       monitorStore.setWsConnected(true)
     },
     (error) => {
+      // WebSocket 错误
       console.error('[Monitor] WebSocket 错误:', error)
+      monitorStore.setWsConnected(false)
+    },
+    () => {
+      // WebSocket 连接关闭
       monitorStore.setWsConnected(false)
     }
   )
@@ -188,6 +199,52 @@ async function handleRefresh() {
         >
           {{ refreshing ? '刷新中...' : '🔄 刷新数据' }}
         </button>
+      </div>
+    </div>
+
+    <!-- 功能说明卡片 -->
+    <div class="description-card">
+      <div class="description-header" @click="showDescription = !showDescription">
+        <h2 class="description-title">📊 监控中心功能说明</h2>
+        <button class="toggle-btn">
+          {{ showDescription ? '▼ 收起' : '▶ 展开' }}
+        </button>
+      </div>
+      <div v-show="showDescription" class="description-content">
+        <div class="description-section">
+          <h3 class="section-title">🤖 智能水平走势</h3>
+          <ul class="section-list">
+            <li>实时监控系统的智能水平（0-10分）</li>
+            <li>追踪策略权重、知识丰富度、质量趋势等指标</li>
+            <li>显示最近7天/30天的进化趋势</li>
+          </ul>
+        </div>
+
+        <div class="description-section">
+          <h3 class="section-title">🔍 智能诊断中心</h3>
+          <ul class="section-list">
+            <li>自动扫描代码库，发现性能、安全、质量问题</li>
+            <li>提供修复建议和自动修复代码</li>
+            <li>支持一键修复部分问题</li>
+          </ul>
+        </div>
+
+        <div class="description-section">
+          <h3 class="section-title">🤖 Agent 性能监控</h3>
+          <ul class="section-list">
+            <li>监控11个AI代理的工作状态和性能</li>
+            <li>显示任务统计、执行时间、成功率</li>
+            <li>追踪实时进度和最后活跃时间</li>
+          </ul>
+        </div>
+
+        <div class="description-section">
+          <h3 class="section-title">📚 知识图谱</h3>
+          <ul class="section-list">
+            <li>展示系统积累的策略、最佳实践、模板</li>
+            <li>支持按类型筛选和关键词搜索</li>
+          </ul>
+        </div>
       </div>
     </div>
 
@@ -291,6 +348,90 @@ async function handleRefresh() {
 .refresh-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.description-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.description-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.description-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+}
+
+.toggle-btn {
+  padding: 6px 12px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  transition: all 0.3s;
+}
+
+.toggle-btn:hover {
+  background: #e0e0e0;
+}
+
+.description-content {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.description-section {
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.section-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.section-list li {
+  padding: 6px 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.section-list li::before {
+  content: '• ';
+  color: #667eea;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+  .description-content {
+    grid-template-columns: 1fr;
+  }
 }
 
 .monitor-grid {
