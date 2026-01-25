@@ -249,27 +249,21 @@ async def get_knowledge_graph(
 # ==================== WebSocket 接口 ====================
 
 @router.websocket("/ws/evolution")
-async def websocket_evolution_stream(
-    websocket: WebSocket,
-    token: Optional[str] = Query(None, description="JWT Token (可选)")
-):
+async def websocket_evolution_stream(websocket: WebSocket):
     """
     WebSocket 实时进化事件推送
 
-    认证: 通过 URL 参数传递 JWT Token（当前为可选，待实现验证逻辑）
+    认证: 当前允许 guest 用户连接（监控页面公开访问）
 
     Args:
         websocket: WebSocket 连接
-        token: JWT Token（可选，实际应验证）
-    """
-    # TODO: 验证 Token
-    # try:
-    #     user = await verify_token(token)
-    # except:
-    #     await websocket.close(code=1008, reason="Unauthorized")
-    #     return
 
-    # 接受连接
+    说明:
+    - 客户端可以发送 {"type": "ping"} 心跳消息
+    - 服务端会响应 {"type": "pong"}
+    - 服务端会主动推送进化事件 {"type": "evolution_event", "data": {...}}
+    """
+    # 接受连接（允许 guest 用户）
     await manager.connect(websocket)
 
     try:
