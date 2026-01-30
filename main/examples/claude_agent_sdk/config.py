@@ -26,9 +26,9 @@ from anthropic import Anthropic
 
 # 可用的模型列表（按推荐顺序）
 AVAILABLE_MODELS = {
-    "haiku": "claude-haiku-4-5-20251001",       # 推荐：速度最快，便宜￥5 / M tokens
-    "sonnet": "claude-3-7-sonnet-20250219",    # 推荐：性能最好 中等￥18 / M tokens
-    "opus": "claude-opus-4-1-20250805"        # 最强大但较慢 ，贵￥75 / M tokens
+    "haiku": "claude-haiku-4-5-20251001-cc",       # 推荐：速度最快，便宜￥5 / M tokens
+    "sonnet": "claude-sonnet-4-5-20250929-cc"    # 推荐：性能最好 中等￥18 / M tokens
+ 
 }
 
 # 默认模型（优先使用环境变量，否则使用 haiku）
@@ -72,6 +72,7 @@ def validate_config() -> tuple[bool, str]:
     api_key = get_api_key()
     base_url = get_base_url()
     
+
     if not base_url:
         return False, "未设置 ANTHROPIC_BASE_URL 环境变量"
 
