@@ -17,8 +17,8 @@ Claude SDK 配置文件
 
 import os
 from typing import Optional
-from anthropic import Anthropic
 
+from anthropic import Anthropic
 
 # =====================================================
 # 配置常量
@@ -26,8 +26,8 @@ from anthropic import Anthropic
 
 # 可用的模型列表（按推荐顺序）
 AVAILABLE_MODELS = {
-    "haiku": "claude-haiku-4-5-20251001-cc",       # 推荐：速度最快，便宜￥5 / M tokens
-    "sonnet": "claude-sonnet-4-5-20250929-cc"    # 推荐：性能最好 中等￥18 / M tokens
+    "haiku": "claude-haiku-4-5-20251001",       # 推荐：速度最快，便宜￥5 / M tokens
+    "sonnet": "claude-sonnet-4-5-20250929"    # 推荐：性能最好 中等￥18 / M tokens
  
 }
 
@@ -70,14 +70,15 @@ def validate_config() -> tuple[bool, str]:
         tuple[bool, str]: (是否有效, 错误信息)
     """
     api_key = get_api_key()
-    base_url = get_base_url()
-    
 
-    if not base_url:
-        return False, "未设置 ANTHROPIC_BASE_URL 环境变量"
-
+    # API Key 是必需的
     if not api_key:
-        return False, "未找到 ANTHROPIC_API_KEY 环境变量"
+        return False, "未设置 ANTHROPIC_API_KEY 环境变量"
+
+    # Base URL 是可选的（只在使用自定义端点时需要）
+    base_url = get_base_url()
+    if base_url:
+        print(f"ℹ️  使用自定义 Base URL: {base_url}")
 
     return True, ""
 
@@ -103,9 +104,13 @@ def create_client() -> Optional[Anthropic]:
     api_key = get_api_key()
     base_url = get_base_url()
 
-    print("ai_key:", api_key, "base_url:", base_url)
-    # 创建并返回客户端
-    return Anthropic(base_url=base_url, api_key=api_key)
+    # 创建客户端（只在 base_url 存在时传递）
+    # 设置超时时间为 10 分钟（600 秒），避免长请求超时
+    if base_url:
+        print(f"ℹ️  使用自定义 Base URL: {base_url}")
+        return Anthropic(base_url=base_url, api_key=api_key, timeout=600.0)
+    else:
+        return Anthropic(api_key=api_key, timeout=600.0)
     
 
 # =====================================================
