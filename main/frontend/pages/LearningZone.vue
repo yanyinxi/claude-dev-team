@@ -6,11 +6,13 @@
  * - 展示学习功能列表（开始学习、错题本、抢答模式、学习进度）
  * - 点击功能卡片进入对应页面
  * - 显示学习统计信息
+ * - 内嵌通用倒计时闹钟（CountdownAlarm）
  */
 
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import { useProgressStore } from '@/stores/progressStore'
+import CountdownAlarm from '@/components/CountdownAlarm.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -115,6 +117,14 @@ const goToFeature = (route: string) => {
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- 倒计时闹钟 -->
+    <section class="alarm-section">
+      <div class="container">
+        <h2 class="section-title">倒计时闹钟</h2>
+        <CountdownAlarm />
       </div>
     </section>
 
@@ -271,6 +281,11 @@ const goToFeature = (route: string) => {
   font-weight: 700;
   color: #2c3e50;
   margin: 0;
+}
+
+/* 倒计时闹钟区域 */
+.alarm-section {
+  padding: 0 0 32px;
 }
 
 /* 学习功能列表 */
