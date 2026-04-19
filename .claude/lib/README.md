@@ -6,18 +6,19 @@
 
 | 模块 | 用途 | 谁会调用 |
 |------|------|----------|
-| `parallel_executor.py` | 并行执行多个 agent 任务 | orchestrator |
+| `parallel_executor.py` | 并行策略对比沙箱（当前为模拟执行） | orchestrator |
 | `strategy_generator.py` | 生成策略变体（自博弈） | self-play-trainer |
 | `quality_evaluator.py` | 对特定产出评分 | code-reviewer |
 | `knowledge_graph.py` | 构建/查询知识图谱 | evolver, orchestrator |
-| `knowledge_retriever.py` | 从 .claude/rules/ 检索经验 | 所有 agent |
+| `knowledge_retriever.py` | 从 `.claude/knowledge_graph.json` 检索经验 | 所有 agent |
 
 ## 使用方式
 
 Agent/Skill 在自己的 prompt 或工作流里通过 Bash 工具显式调用：
 
 ```bash
-python3 .claude/lib/knowledge_retriever.py --domain backend --query "API design"
+echo '{"context":"API design","domain":"backend","top_k":3}' | \
+  python3 .claude/lib/knowledge_retriever.py
 ```
 
 ## 与 hooks/ 的区别

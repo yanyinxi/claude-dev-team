@@ -30,7 +30,7 @@
 
 - ✅ **新增功能组件**：
   - `skills/llm-driven-collaboration/` - LLM驱动协作Skill
-  - `tests/llm-driven-tests.md` - 完整测试用例
+  - `docs/directory-governance.md` - 目录治理规范（后续版本新增）
   - `tests/validate-config.sh` - 配置验证脚本
 
 ## 📊 性能目标达成

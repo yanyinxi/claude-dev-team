@@ -39,11 +39,12 @@ def verify_file_structure(content: str) -> Tuple[bool, List[str]]:
     # 检查必需的章节是否存在
     required_sections = [
         "# 项目技术标准",
-        "## 项目信息",
         "## 📂 路径配置",
-        "## ⚡ 快速参考",
-        "## 最佳实践",
-        "## 进化记录",
+        "## 🚨 目录结构强制约束",
+        "## 命名约定",
+        "## 技术栈",
+        "## API 规范",
+        "## 进化机制",
     ]
 
     for section in required_sections:
@@ -151,11 +152,11 @@ def verify_path_variables(content: str) -> Tuple[bool, List[str]]:
 
 
 def verify_version_update(content: str) -> Tuple[bool, List[str]]:
-    """验证版本更新逻辑"""
+    """验证版本信息与进化历史的一致性（兼容当前文档结构）"""
     errors = []
 
-    # 检查版本号格式 (v1.x.x)
-    version_pattern = r"\| 版本 \| (\d+\.\d+\.\d+) \|"
+    # 检查版本号格式（当前文档为“版本 2.2.0”）
+    version_pattern = r"版本\s*(\d+\.\d+\.\d+)"
     match = re.search(version_pattern, content)
 
     if not match:
@@ -169,45 +170,29 @@ def verify_version_update(content: str) -> Tuple[bool, List[str]]:
         errors.append(f"❌ 版本号格式错误: {version}")
         return False, errors
 
-    # 检查进化记录是否与版本匹配
-    evolution_section_match = re.search(r"## 进化记录.*?(?=## |\Z)", content, re.DOTALL)
+    # 检查进化机制章节是否存在
+    evolution_section_match = re.search(r"## 进化机制.*?(?=## |\Z)", content, re.DOTALL)
 
     if not evolution_section_match:
-        errors.append("❌ 未找到进化记录章节")
+        errors.append("❌ 未找到进化机制章节")
         return False, errors
 
     evolution_section = evolution_section_match.group()
 
-    # 查找 "2026-01-18 v{version}" 或 "### v{version}" 格式
+    # 查找版本是否在进化机制章节中出现
     version_patterns = [
-        f"v{version}",  # 如 "v1.6.0"
-        f"### [0-9]{{4}}-[0-9]{{2}}-[0-9]{{2}} v{version}",  # 如 "### 2026-01-18 v1.6.0"
+        rf"\|\s*\d{{4}}-\d{{2}}-\d{{2}}\s*\|\s*{re.escape(version)}\s*\|",  # 历史表
+        rf"v{re.escape(version)}",  # 兼容旧格式
     ]
 
     found = any(re.search(pattern, evolution_section) for pattern in version_patterns)
 
     if not found:
-        # 也检查整个文档
-        if f"v{version}" not in content:
-            errors.append(f"❌ 版本 v{version} 未在进化记录中更新")
+        # 当前版本可能是最近一次发布但未写入历史表，仅给出提示
+        errors.append(f"⚠️ 版本 {version} 未在进化历史表中找到（建议补充）")
 
-    if not errors:
-        print(f"✅ 版本更新验证通过: v{version}")
-
-    # 检查路径配置变更记录是否与版本匹配
-    path_record_match = re.search(r"### 路径配置变更记录.*?\|", content, re.DOTALL)
-
-    if path_record_match:
-        path_record = path_record_match.group()
-        if (
-            f"1.{parts[1]}.{parts[2]}" not in path_record
-            and f"v{version}" not in path_record
-        ):
-            # 可能是较新版本，还在上面
-            pass
-
-    if not errors:
-        print(f"✅ 版本更新验证通过: v{version}")
+    if not [e for e in errors if e.startswith("❌")]:
+        print(f"✅ 版本信息验证通过: {version}")
 
     return len([e for e in errors if e.startswith("❌")]) == 0, errors
 

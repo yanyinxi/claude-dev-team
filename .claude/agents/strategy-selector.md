@@ -129,8 +129,8 @@ context: main
 
 3. 评估每个变体的适用性
    ├─ 匹配任务特征
-   ├─ 考虑历史权重
-   └─ 计算适配分数
+   ├─ 读取 `.claude/strategy_weights.json` 的领域权重
+   └─ 在复杂度基线上做一档上调/下调
 
 4. 选择最优策略
    ├─ 对比适配分数
@@ -154,36 +154,29 @@ context: main
 
 ```bash
 # 生成策略变体
-python3 .claude/hooks/scripts/strategy_generator.py
+python3 .claude/lib/strategy_generator.py
 
 # 分析任务并推荐策略
-python3 .claude/hooks/scripts/strategy_generator.py "实现用户认证和权限管理系统"
+python3 .claude/lib/strategy_generator.py "实现用户认证和权限管理系统"
 
 # 输出示例:
 # 🎯 任务分析:
 #   任务描述: 实现用户认证和权限管理系统
 #   复杂度: 7/10
-#   推荐策略: hybrid
+#   任务领域: backend
+#   领域权重: 6.8
+#   基线策略: hybrid
+#   最终策略: parallel_high
 ```
 
 ## 策略权重管理
 
-系统会自动维护策略权重文件 `.claude/strategy_weights.json`：
+`strategy_weights.json` 会在 Stop Hook 路径中按 EMA 更新（基于真实会话信号）。
 
-```json
-{
-  "parallel_high": 8.2,
-  "granular": 7.8,
-  "sequential": 6.5,
-  "hybrid": 8.5,
-  "last_updated": "2026-01-24T10:30:00"
-}
-```
-
-权重更新规则：
-- 使用指数移动平均 (EMA)
-- alpha = 0.3
-- 新权重 = 0.3 × 本次得分 + 0.7 × 历史权重
+注意：
+- 文件结构不是固定 schema，可能包含 `metadata` 与不同维度键。
+- 不要在策略选择逻辑里硬编码某个 JSON 结构。
+- 当前 `strategy_generator.py` 会读取领域权重并参与推荐（复杂度为基线，权重做温和偏置）。
 
 ## 集成到工作流
 

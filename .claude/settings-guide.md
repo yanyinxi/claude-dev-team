@@ -49,8 +49,8 @@
 | `PreToolUse` (Write\|Edit) | 写/编辑文件前 | `path_validator.py`（路径合规验证，5s超时）|
 | `PreToolUse` (Bash) | 执行 Bash 前 | `safety-check.sh`（危险命令拦截，5s超时）|
 | `UserPromptSubmit` | 用户每次提交 | `context-enhancer.sh`（注入项目上下文，10s超时）|
-| `Stop` | 主 Agent 完成时 | LLM战略分析(35s) + `strategy_updater.py`(30s) |
-| `SubagentStop` | 子 Agent 完成时 | LLM智能分析(25s) + `auto_evolver.py`(25s) |
+| `Stop` | 主 Agent 完成时 | `session_evolver.py`（真实会话采集） + `strategy_updater.py`（EMA 更新） |
+| `SubagentStop` | 子 Agent 完成时 | `auto_evolver.py`（仅记录 agent 调用事实） |
 | `SessionStart` | 会话启动时 | `setup_env.sh`（初始化环境，10s超时）|
 
 ---
@@ -64,3 +64,13 @@
 | `real_time_collaboration_enabled` | 启用实时协作机制 |
 | `predictive_optimization_enabled` | 启用预测优化 |
 | `context_driven_learning` | 启用上下文驱动学习 |
+
+---
+
+## 日志与产物治理
+
+- 当前有效运行日志：
+  - `.claude/logs/sessions.jsonl`
+  - `.claude/logs/agent-invocations.jsonl`
+- `evolution-log.jsonl` 已废弃，不再作为当前实现的数据源。
+- 目录治理规范见：`.claude/docs/directory-governance.md`

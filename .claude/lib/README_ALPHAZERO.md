@@ -1,326 +1,61 @@
-# AlphaZero 风格自博弈学习系统
+# AlphaZero 风格策略对比系统（当前实现）
 
-完整的策略选择和自博弈训练系统，借鉴 AlphaZero 的自博弈学习思想。
+> 本文档描述 `.claude/lib/strategy_generator.py` 与 `.claude/lib/parallel_executor.py` 的真实状态。
 
-## 系统架构
+## 当前实现边界
+- 已实现：策略变体生成（4 类变体）
+- 已实现：基于关键词的复杂度评估与策略推荐
+- 已实现：并发执行框架（`asyncio.gather`）
+- 当前为模拟：`parallel_executor.py` 通过 `_simulate_execution(...)` 生成结果
+- 未实现：直接调用 Claude Code `background_task` 做真实多 agent 执行
+- 未实现：训练后自动写入 `.claude/rules/*.md`
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                  AlphaZero 自博弈学习系统                    │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  1. 策略变体生成 (strategy_generator.py)                    │
-│     ├─ 高并行度策略 (parallel_high)                         │
-│     ├─ 细粒度任务分解策略 (granular)                        │
-│     ├─ 顺序执行策略 (sequential)                            │
-│     └─ 混合策略 (hybrid)                                    │
-│                                                             │
-│  2. 并行执行器 (parallel_executor.py)                       │
-│     ├─ 使用 asyncio 并行执行所有变体                        │
-│     ├─ 收集执行结果（质量分数、耗时、成功率）                │
-│     └─ 保存到 execution_results/                           │
-│                                                             │
-│  3. 结果对比分析                                            │
-│     ├─ 计算质量分数（代码质量、任务完成度、协作效果）        │
-│     ├─ 选择最佳变体                                         │
-│     └─ 分析优势和劣势                                       │
-│                                                             │
-│  4. 策略权重更新                                            │
-│     ├─ 使用指数移动平均 (EMA, alpha=0.3)                   │
-│     ├─ 更新 strategy_weights.json                          │
-│     └─ 记录更新时间                                         │
-│                                                             │
-│  5. 知识提炼                                                │
-│     ├─ 提取最佳实践                                         │
-│     ├─ 更新 .claude/rules/*.md                             │
-│     └─ 更新 Agent 配置                                      │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+## 组件说明
 
-## 核心组件
-
-### 1. 策略变体生成器 (`strategy_generator.py`)
-
-自动生成 4 种策略变体：
-
-| 变体 | 并行度 | 适用场景 | Agent 数量 |
-|------|--------|---------|-----------|
-| **parallel_high** | 高 | 独立任务多 | 5 |
-| **granular** | 中 | 需要精细控制 | 3 |
-| **sequential** | 低 | 强依赖任务 | 1 |
-| **hybrid** | 自适应 | 复杂任务 | 3 |
-
-**使用方法**：
-
+### 1) `strategy_generator.py`
 ```bash
-# 生成策略变体
-python3 .claude/hooks/scripts/strategy_generator.py
-
-# 分析任务并推荐策略
-python3 .claude/hooks/scripts/strategy_generator.py "实现用户认证系统"
+python3 .claude/lib/strategy_generator.py
+python3 .claude/lib/strategy_generator.py "实现用户认证系统"
 ```
 
-**输出示例**：
+输出内容：
+- 策略变体列表（parallel_high / granular / sequential / hybrid）
+- 复杂度分数（1-10）
+- 推荐策略
+- 变体文件：`.claude/strategy_variants.json`
 
-```
-🎯 任务分析:
-  任务描述: 实现用户认证系统
-  复杂度: 6/10
-  推荐策略: granular
-```
-
-### 2. 并行执行器 (`parallel_executor.py`)
-
-使用 asyncio 并行执行所有策略变体，对比结果。
-
-**使用方法**：
-
+### 2) `parallel_executor.py`
 ```bash
-# 运行自博弈训练
-python3 .claude/hooks/scripts/parallel_executor.py
+python3 .claude/lib/parallel_executor.py
 ```
 
-**输出示例**：
+输出内容：
+- 4 个策略变体的模拟执行结果
+- 对比分析与最佳变体
+- 执行结果文件：`.claude/execution_results/execution_*.json`
+- 权重更新：`.claude/strategy_weights.json`
 
-```
-🚀 开始并行执行 4 个策略变体...
-📝 任务描述: 实现用户登录功能
+## 与 Hook 的关系
+- `parallel_executor.py` 不是 Hook 自动触发脚本，需手动调用。
+- Stop Hook (`session_evolver.py` + `strategy_updater.py`) 负责真实会话信号采集与 EMA 更新。
 
-🔄 变体 1 (parallel_high) 开始执行...
-🔄 变体 2 (granular) 开始执行...
-🔄 变体 3 (sequential) 开始执行...
-🔄 变体 4 (hybrid) 开始执行...
-
-✅ 变体 1 (parallel_high) 执行完成 - 得分: 9.7/10
-✅ 变体 2 (granular) 执行完成 - 得分: 8.8/10
-✅ 变体 3 (sequential) 执行完成 - 得分: 8.4/10
-✅ 变体 4 (hybrid) 执行完成 - 得分: 8.8/10
-
-✅ 所有变体执行完成，总耗时: 2.00秒
-
-📊 对比分析结果:
-
-| 变体ID | 变体名称 | 得分 | 耗时(秒) | 状态 |
-|--------|----------|------|----------|------|
-| 1 | parallel_high | 9.7/10 | 1.00 | ✅ |
-| 2 | granular | 8.8/10 | 1.50 | ✅ |
-| 3 | sequential | 8.4/10 | 2.00 | ✅ |
-| 4 | hybrid | 8.8/10 | 1.20 | ✅ |
-
-🏆 最佳变体: parallel_high (得分: 9.7/10)
-
-📈 策略权重已更新:
-  parallel_high: 5.00 → 6.41
-```
-
-## 质量评分标准
-
-执行结果的质量分数计算方式：
-
-```python
-# 权重配置
-weights = {
-    "code_quality": 0.3,        # 代码质量
-    "task_completion": 0.3,     # 任务完成度
-    "agent_coordination": 0.2,  # Agent 协作效果
-    "test_pass_rate": 0.2       # 测试通过率
-}
-
-# 加权计算
-score = (
-    code_quality * 0.3 +
-    task_completion * 0.3 +
-    agent_coordination * 0.2 +
-    test_pass_rate * 0.2
-)
-
-# 根据并行度调整
-if parallel_degree == "high":
-    score *= 1.1  # 高并行度加分
-elif parallel_degree == "low":
-    score *= 0.95  # 低并行度减分
-```
-
-## 策略权重管理
-
-系统自动维护策略权重文件 `.claude/strategy_weights.json`：
-
-```json
-{
-  "parallel_high": 8.2,
-  "granular": 7.8,
-  "sequential": 6.5,
-  "hybrid": 8.5,
-  "last_updated": "2026-01-24T10:30:00"
-}
-```
-
-**权重更新规则**：
-- 使用指数移动平均 (EMA)
-- alpha = 0.3
-- 新权重 = 0.3 × 本次得分 + 0.7 × 历史权重
-
-## 执行结果存储
-
-每次执行的详细结果保存在 `.claude/hooks/execution_results/`：
-
-```json
-{
-  "timestamp": "20260124_103000",
-  "task_description": "实现用户登录功能",
-  "results": [
-    {
-      "variant_id": 1,
-      "variant_name": "parallel_high",
-      "success": true,
-      "duration": 1.2,
-      "quality_score": 8.5,
-      "result": {
-        "files_modified": 5,
-        "tests_passed": 8,
-        "tests_failed": 0,
-        "code_quality": 8.5,
-        "agent_coordination": 7.8,
-        "task_completion": 9.0
-      }
-    }
-  ]
-}
-```
-
-## 与 Agent 系统集成
-
-### 1. strategy-selector Agent
-
-在 orchestrator 中调用 strategy-selector：
-
-```python
-# 调用 strategy-selector 分析任务
-strategy_result = Task(
-    agent="strategy-selector",
-    prompt=f"分析任务并选择最优策略: {task_description}"
-)
-
-# 根据推荐策略执行
-if strategy_result["strategy_key"] == "parallel_high":
-    # 高并行度执行
-    ...
-elif strategy_result["strategy_key"] == "hybrid":
-    # 混合策略执行
-    ...
-```
-
-### 2. self-play-trainer Agent
-
-在需要对比多种策略时调用：
-
-```python
-# 调用 self-play-trainer 进行自博弈训练
-result = Task(
-    agent="self-play-trainer",
-    prompt="对比多种策略，选择最优方案: 实现用户认证系统"
-)
-
-# 获取推荐策略
-best_strategy = result["best_variant"]
-best_score = result["best_score"]
-
-# 使用推荐策略执行任务
-...
-```
-
-## 复杂度与策略映射
-
-| 复杂度 | 推荐策略 | 理由 |
-|--------|---------|------|
-| 1-3 (简单) | sequential | 简单任务，顺序执行即可 |
-| 4-6 (中等) | granular | 中等任务，细粒度分解 |
-| 7-8 (复杂) | hybrid | 复杂任务，混合策略 |
-| 9-10 (超复杂) | parallel_high | 超复杂任务，高并行度 |
-
-## 任务复杂度分析
-
-系统会根据关键词自动评估任务复杂度：
-
-**高复杂度关键词** (+1 分)：
-- 架构、重构、迁移、集成、分布式
-- 性能优化、安全、多模块、复杂业务
-
-**中等复杂度关键词** (+0.5 分)：
-- 功能、API、数据库、认证、权限
-
-**低复杂度关键词** (-1 分)：
-- 修复、样式、文案、配置、简单
-
-## 最佳实践
-
-1. **简单任务**：直接使用 strategy-selector 选择策略
-2. **复杂任务**：使用 self-play-trainer 对比多种策略
-3. **定期查看**：检查 execution_results/ 了解历史表现
-4. **权重调整**：系统会自动更新权重，无需手动干预
-5. **知识提炼**：最佳实践会自动写入 .claude/rules/
-
-## 文件结构
-
-```
-.claude/
-├── hooks/
-│   ├── scripts/
-│   │   ├── strategy_generator.py      # 策略变体生成器
-│   │   ├── parallel_executor.py       # 并行执行器
-│   │   └── README_ALPHAZERO.md        # 本文档
-│   ├── execution_results/             # 执行结果存储
-│   │   └── execution_*.json
-│   └── strategy_variants.json         # 生成的策略变体
-├── agents/
-│   ├── strategy-selector.md           # 策略选择器 Agent
-│   └── self-play-trainer.md           # 自博弈训练器 Agent
-├── rules/
-│   ├── backend.md                     # 后端策略规则
-│   ├── frontend.md                    # 前端策略规则
-│   └── collaboration.md               # 协作策略规则
-└── strategy_weights.json              # 策略权重配置
-```
-
-## 进化记录
-
-系统会自动记录每次自博弈训练的结果：
-
-| 时间 | 任务 | 最佳变体 | 得分 | 改进 |
-|------|------|---------|------|------|
-| 2026-01-24 10:30 | 用户登录 | hybrid | 8.5/10 | +0.3 |
-| 2026-01-24 11:00 | 数据导出 | parallel_high | 8.2/10 | +0.5 |
-| 2026-01-24 11:30 | 权限管理 | granular | 7.8/10 | +0.2 |
+## 推荐使用方式
+1. 先用 `strategy_generator.py` 生成候选策略。
+2. 需要快速预评估时，用 `parallel_executor.py` 做模拟对比。
+3. 真正执行阶段，交由 orchestrator + 专业 agent 任务流。
+4. 会话结束后从 `.claude/logs/sessions.jsonl` 与 `.claude/strategy_weights.json` 查看反馈。
 
 ## 常见问题
 
-### Q: 如何选择合适的策略？
+### Q: 为什么叫“并行执行器”却是模拟？
+A: 当前版本用于策略评估沙箱，后续若要接入真实 subagent 并行执行，需要单独实现与测试。
 
-A: 使用 `strategy_generator.py` 分析任务描述，系统会自动推荐最优策略。
+### Q: 是否会自动把最佳实践写入 rules？
+A: 当前不会。规则文件更新需要人工/显式脚本流程。
 
-### Q: 如何查看历史执行结果？
+### Q: 如何判断哪些能力是已实现的？
+A: 查看 `.claude/capabilities.json` 与 `python3 .claude/tests/verify_capabilities.py` 校验结果。
 
-A: 查看 `.claude/hooks/execution_results/` 目录下的 JSON 文件。
+---
 
-### Q: 如何手动调整策略权重？
-
-A: 编辑 `.claude/strategy_weights.json` 文件，但建议让系统自动更新。
-
-### Q: 如何集成到现有工作流？
-
-A: 在 orchestrator 中调用 strategy-selector 或 self-play-trainer Agent。
-
-## 未来优化
-
-1. **真实执行**：集成 Claude Code 的 background_task API
-2. **更多变体**：支持自定义策略变体
-3. **可视化**：添加执行结果可视化界面
-4. **自动调优**：根据历史数据自动调整策略参数
-5. **A/B 测试**：支持多策略 A/B 测试
-
-## 参考资料
-
-- AlphaZero 论文: https://arxiv.org/abs/1712.01815
-- Claude Code 文档: @.claude/docs/claude-code-reference.md
-- 项目标准: @.claude/project_standards.md
+**更新时间**: 2026-04-19

@@ -61,7 +61,8 @@ def clean_file(path: Path) -> bool:
             "- 每次会话结束时，`session_evolver.py` 采集 git diff / agent 调用等真实数据到 "
             "`.claude/logs/sessions.jsonl`\n"
             "- `strategy_updater.py` 基于真实指标做 EMA 更新到 `.claude/strategy_weights.json`\n"
-            "- 如需查看实时统计：`python3 .claude/lib/knowledge_retriever.py --stats`\n"
+            "- 查看最近会话信号：`tail -n 5 .claude/logs/sessions.jsonl`\n"
+            "- 查看最新策略权重：`cat .claude/strategy_weights.json`\n"
         )
 
     if content != original:

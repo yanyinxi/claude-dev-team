@@ -1,116 +1,83 @@
 # Claude Dev Team - 快速参考手册
 
-> 所有核心功能的快速查询指南
+> 只保留当前代码中已实现、可直接验证的能力。
 
-## 自动反馈系统
+## 自动反馈与策略更新
 
 ### 核心命令
 ```bash
-# 测试自动反馈系统
-bash .claude/hooks/scripts/test_auto_feedback.sh
+# 测试自动反馈链路（采集 + 权重更新）
+bash .claude/tests/test_auto_feedback.sh
+
+# 查看最近会话信号
+tail -n 5 .claude/logs/sessions.jsonl
 
 # 查看策略权重
 cat .claude/strategy_weights.json
 ```
 
-### 质量评分维度
-- **效率** (25%): 任务完成速度
-- **代码质量** (30%): 代码规范和可维护性
-- **测试覆盖率** (25%): 测试完整性
-- **文档完整性** (20%): 文档质量
-
-### 权重更新机制
-```
-新权重 = 0.3 × 本次得分 + 0.7 × 历史权重
-```
+### 质量信号来源
+- `session_evolver.py`: 从 git diff / agent 调用记录采集真实信号
+- `strategy_updater.py`: 基于真实信号做 EMA 更新
+- `auto_evolver.py`: 只记录 Subagent 调用事实
 
 ---
 
-## AlphaZero 自博弈学习系统
+## AlphaZero 风格策略工具（当前实现）
 
 ### 核心命令
 ```bash
 # 生成策略变体
-python3 .claude/hooks/scripts/strategy_generator.py
+python3 .claude/lib/strategy_generator.py
 
-# 分析任务并推荐策略
-python3 .claude/hooks/scripts/strategy_generator.py "任务描述"
+# 任务复杂度分析 + 推荐策略
+python3 .claude/lib/strategy_generator.py "任务描述"
 
-# 运行自博弈训练
-python3 .claude/hooks/scripts/parallel_executor.py
+# 运行策略对比沙箱（当前为模拟执行）
+python3 .claude/lib/parallel_executor.py
 
 # 运行完整测试
-bash .claude/hooks/scripts/test-alphazero.sh
+bash .claude/tests/test-alphazero.sh
 ```
 
-### 4 种策略变体
-
-| 变体 | 并行度 | 适用场景 | Agent 数量 |
-|------|--------|---------|-----------|
-| **parallel_high** | 高 | 独立任务多 | 5 |
-| **granular** | 中 | 需要精细控制 | 3 |
-| **sequential** | 低 | 强依赖任务 | 1 |
-| **hybrid** | 自适应 | 复杂任务 | 3 |
-
-### 复杂度映射
-
-| 复杂度 | 推荐策略 |
-|--------|---------|
-| 1-3 (简单) | sequential |
-| 4-6 (中等) | granular |
-| 7-8 (复杂) | hybrid |
-| 9-10 (超复杂) | parallel_high |
-
-### Agent 调用
-```python
-# 策略选择
-Task(agent="strategy-selector", prompt="分析任务: ...")
-
-# 自博弈训练
-Task(agent="self-play-trainer", prompt="对比策略: ...")
-```
+### 说明
+- `parallel_executor.py` 当前用于**策略对比沙箱**，执行逻辑是 `_simulate_execution(...)`。
+- 不会自动触发真实 subagent 执行。
+- 不会自动写入 `.claude/rules/*.md`。
+- `strategy_generator.py` 的推荐策略会叠加 `strategy_weights.json` 中的领域 EMA 权重（复杂度为基线，权重做一档偏置）。
 
 ---
 
-## 知识图谱系统
+## 知识图谱（当前实现）
 
-### 核心命令
-```bash
-# 添加节点
-python3 .claude/hooks/scripts/knowledge_graph.py add-node \
-  --type best_practice \
-  --content "API-First 并行开发" \
-  --tags "backend,collaboration"
+### Python API 使用
+```python
+from knowledge_graph import KnowledgeGraph
 
-# 搜索节点
-python3 .claude/hooks/scripts/knowledge_graph.py search \
-  --query "并行开发" \
-  --type best_practice
+kg = KnowledgeGraph()
+node_id = kg.add_node({
+    "type": "best_practice",
+    "domain": "backend",
+    "title": "API-first 并行开发",
+    "description": "先定义接口契约，再并行开发前后端",
+    "success_rate": 0.92,
+    "avg_reward": 8.5,
+    "tags": ["api", "parallel"]
+})
 
-# 添加关系
-python3 .claude/hooks/scripts/knowledge_graph.py add-edge \
-  --from node_001 \
-  --to node_002 \
-  --type "depends_on"
-
-# 查看统计
-python3 .claude/hooks/scripts/knowledge_graph.py stats
+results = kg.search_nodes("API", domain="backend")
+stats = kg.get_statistics()
 ```
 
-### 节点类型
-- `best_practice` - 最佳实践
-- `anti_pattern` - 反模式
-- `lesson_learned` - 经验教训
-- `innovation` - 创新想法
-- `tool` - 工具/技术
-- `pattern` - 设计模式
+### 检索脚本使用（stdin JSON）
+```bash
+echo '{"context":"API development","domain":"backend","top_k":3}' | \
+  python3 .claude/lib/knowledge_retriever.py
+```
 
-### 关系类型
-- `depends_on` - 依赖关系
-- `conflicts_with` - 冲突关系
-- `enhances` - 增强关系
-- `alternative_to` - 替代关系
-- `evolved_from` - 进化关系
+### 当前边界
+- `knowledge_graph.py` 支持库级 API，但**未提供 argparse 子命令 CLI**（如 `add-node/search/stats`）。
+- `knowledge_retriever.py` 当前不支持 `--stats` 参数。
 
 ---
 
@@ -124,138 +91,72 @@ python3 .claude/hooks/scripts/knowledge_graph.py stats
 - `SubagentStop` - 子代理完成时
 - `UserPromptSubmit` - 用户提交提示时
 
-### 配置示例
-```json
-{
-  "hooks": {
-    "PreToolUse": [{
-      "matcher": "Write|Edit",
-      "hooks": [{
-        "type": "command",
-        "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/path_validator.py"
-      }]
-    }]
-  }
-}
+### 配置检查
+```bash
+python3 .claude/tests/verify_hook_references.py
+bash .claude/tests/validate-config.sh
 ```
 
 ---
 
 ## Agent 系统
 
-### 11 个专业代理
+### 核心代理
+- `strategy-selector` - 根据任务复杂度推荐策略
+- `self-play-trainer` - 对比多策略并输出分析
+- `orchestrator` - 协调整体执行流程
 
-| 代理 | 触发词 | 模型 |
-|------|--------|------|
-| **strategy-selector** | 策略选择、智能分配 | opus |
-| **self-play-trainer** | 自博弈、多策略对比 | opus |
-| **orchestrator** | 协调、管理流程 | opus |
-| **product-manager** | 需求分析、PRD | sonnet |
-| **tech-lead** | 架构设计、技术选型 | sonnet |
-| **frontend-developer** | 前端、UI、组件 | sonnet |
-| **backend-developer** | 后端、API、数据库 | sonnet |
-| **test** | 测试、测试计划 | sonnet |
-| **code-reviewer** | 代码审查、PR 审查 | sonnet |
-| **evolver** | 进化、学习、改进 | sonnet |
-| **progress-viewer** | 进度、状态 | haiku |
-
-### Agent 调用
-```python
-# 前台任务
-result = Task(agent="backend-developer", prompt="实现用户认证 API")
-
-# 后台任务（并行执行）
-t1 = background_task(agent="frontend-developer", prompt="实现登录页面")
-t2 = background_task(agent="backend-developer", prompt="实现登录 API")
-r1 = background_output(task_id=t1)
-r2 = background_output(task_id=t2)
-```
+### 推荐实践
+- 简单任务：直接用 `strategy-selector`
+- 复杂任务：先 `strategy-selector`，再按需 `self-play-trainer`
+- 高风险改动：先补测试再执行 Stop Hook 路径验证
 
 ---
 
-## Skills 系统
+## 文档与能力防漂移
 
-### 6 个可复用技能
-
-| Skill | 用途 | Agent |
-|-------|------|-------|
-| **requirement-analysis** | 需求分析和 PRD 生成 | product-manager |
-| **architecture-design** | 系统架构设计 | tech-lead |
-| **api-design** | RESTful API 设计 | tech-lead |
-| **testing** | 测试规划和执行 | test |
-| **code-quality** | 代码质量审查 | code-reviewer |
-| **task-distribution** | 任务拆分和分配 | tech-lead |
-
-### Skill 调用
-```python
-# 通过 Skill 工具调用
-Skill(skill="requirement-analysis", args="用户认证系统")
-
-# 通过斜杠命令调用
-/requirement-analysis 用户认证系统
-```
-
----
-
-## Rules 系统
-
-### 5 个策略规则文件
-
-| 文件 | 适用路径 | 关键词 |
-|------|---------|--------|
-| **backend.md** | `main/backend/**/*.py` | backend, api, database |
-| **frontend.md** | `main/frontend/**/*.{vue,ts,js}` | frontend, vue, components |
-| **collaboration.md** | 全局 | collaboration, orchestration |
-| **system-design.md** | 全局 | system-design, architecture |
-| **general.md** | 全局 | general |
-
----
-
-## 常用命令
-
-### 测试命令
+### 必跑校验
 ```bash
-# 测试所有 Hooks
-bash .claude/hooks/scripts/test-all-hooks.sh
-
-# 测试 AlphaZero 系统
-bash .claude/hooks/scripts/test-alphazero.sh
-
-# 测试自动反馈系统
-bash .claude/hooks/scripts/test_auto_feedback.sh
-
-# 验证项目标准
-python3 .claude/hooks/scripts/verify_standards.py --verbose
+python3 .claude/tests/verify_capabilities.py
+python3 .claude/tests/verify_hook_references.py
+python3 .claude/tests/verify_standards.py --verbose
 ```
 
-### 配置文件
-- `.claude/settings.json` - 主配置文件（权限、Hooks）
-- `.claude/settings.local.json` - 本地配置（不提交到 Git）
-- `.claude/strategy_weights.json` - 策略权重（自动更新）
+### 单一事实源
+- 代码是最终事实源
+- 能力状态清单：`.claude/capabilities.json`
+- 文档不得将 `planned/deprecated` 能力描述为“可直接运行”
+
+---
+
+## 目录治理与清理
+
+### 规则文档
+- `.claude/docs/directory-governance.md`
+
+### 常用清理命令
+```bash
+# 一键清理运行时噪音
+bash .claude/tests/cleanup-claude-artifacts.sh
+
+# 清理缓存
+find .claude -type d -name '__pycache__' -prune -exec rm -rf {} +
+find .claude -name '.DS_Store' -delete
+
+# 查看运行时日志
+ls -lh .claude/logs/
+```
+
+---
+
+## 常用路径
+- `.claude/settings.json` - Hooks 与权限配置
+- `.claude/strategy_weights.json` - 策略权重（Stop Hook 更新）
+- `.claude/logs/sessions.jsonl` - 会话真实信号
+- `.claude/logs/agent-invocations.jsonl` - Subagent 调用事实
 - `.claude/knowledge_graph.json` - 知识图谱数据
+- `.claude/strategy_variants.json` - 策略变体输出
 
 ---
 
-## 文件结构
-
-```
-.claude/
-├── agents/              # 11 个专业代理配置
-├── skills/              # 6 个可复用技能
-├── rules/               # 5 个策略规则文件
-├── hooks/               # Hooks 系统
-│   ├── scripts/         # 可执行脚本
-│   ├── execution_results/  # 执行结果历史
-│   ├── strategy_variants.json  # 策略变体配置
-│   └── strategy_weights.json   # 策略权重
-├── docs/                # 文档目录
-├── tests/               # 测试脚本
-├── settings.json        # 主配置文件
-├── strategy_weights.json  # 策略权重（根目录）
-├── knowledge_graph.json   # 知识图谱数据
-└── project_standards.md   # 项目技术标准
-```
-
----
-
-**版本**: 3.0.0 | **更新时间**: 2026-01-24
+**版本**: 3.2.0 | **更新时间**: 2026-04-19

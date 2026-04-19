@@ -4,16 +4,17 @@
 echo "🧪 测试 Claude Dev Team Hooks 配置"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-PROJECT_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+PROJECT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 export CLAUDE_PROJECT_DIR="$PROJECT_DIR"
 
 echo "📁 项目目录: $PROJECT_DIR"
 echo ""
 
-# 测试 1: 质量门禁
+# 测试 1: 质量门禁（合法 JSON）
 echo "测试 1: 质量门禁 (quality-gate.sh)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-"$PROJECT_DIR/.claude/hooks/scripts/quality-gate.sh" "Write" "$PROJECT_DIR/.claude/project_standards.md"
+echo "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$PROJECT_DIR/.claude/project_standards.md\"}}" | \
+  "$PROJECT_DIR/.claude/hooks/scripts/quality-gate.sh"
 echo ""
 
 # 测试 2: 上下文增强
@@ -25,7 +26,8 @@ echo ""
 # 测试 3: 安全检查 - 正常命令
 echo "测试 3: 安全检查 - 正常命令"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-"$PROJECT_DIR/.claude/hooks/scripts/safety-check.sh" "Bash" "ls -la"
+echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | \
+  "$PROJECT_DIR/.claude/hooks/scripts/safety-check.sh"
 if [ $? -eq 0 ]; then
     echo "✅ 正常命令通过"
 else
@@ -36,7 +38,8 @@ echo ""
 # 测试 4: 安全检查 - 危险命令
 echo "测试 4: 安全检查 - 危险命令"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-"$PROJECT_DIR/.claude/hooks/scripts/safety-check.sh" "Bash" "rm -rf /"
+echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf /"}}' | \
+  "$PROJECT_DIR/.claude/hooks/scripts/safety-check.sh"
 if [ $? -eq 2 ]; then
     echo "✅ 危险命令被正确阻止"
 else

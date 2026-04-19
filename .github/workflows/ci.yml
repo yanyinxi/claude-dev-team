@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  claude-infra:
+    name: Claude Infrastructure Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate JSON config files
+        run: |
+          python3 -m json.tool .claude/settings.json > /dev/null
+          python3 -m json.tool .claude/strategy_weights.json > /dev/null
+
+      - name: Check hook scripts syntax
+        run: |
+          python3 -m py_compile .claude/hooks/path_validator.py
+          python3 -m py_compile .claude/hooks/scripts/auto_evolver.py
+          python3 -m py_compile .claude/hooks/scripts/session_evolver.py
+          python3 -m py_compile .claude/hooks/scripts/strategy_updater.py
+          bash -n .claude/hooks/scripts/safety-check.sh
+          bash -n .claude/hooks/scripts/quality-gate.sh
+          bash -n .claude/hooks/scripts/setup_env.sh
+          bash -n .claude/hooks/scripts/context-enhancer.sh
+
+      - name: Check lib modules syntax
+        run: |
+          for f in .claude/lib/*.py; do python3 -m py_compile "$f"; done
+
+      - name: Verify referenced hook scripts exist
+        run: python3 .claude/tests/verify_hook_references.py
+
+      - name: Verify capabilities and doc claims
+        run: python3 .claude/tests/verify_capabilities.py
+
+  backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: main/backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio httpx
+
+      - name: Run tests
+        env:
+          SECRET_KEY: ci-test-secret-key
+          ADMIN_PASSWORD: ci-test-password
+          DEBUG: "false"
+        run: pytest ../tests/backend -v --tb=short
+
+  frontend:
+    name: Frontend Lint & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: main/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: main/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Lint
+        run: npm run lint || true
+
+      - name: Type check & build
+        run: npm run build

@@ -7,6 +7,10 @@
 # ============================================
 .claude/output/
 .claude/logs/
+.claude/execution_results/
+.claude/hooks/execution_results/
+.claude/strategy_variants.json
+.claude/knowledge_graph.md
 
 # ============================================
 # Python

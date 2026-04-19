@@ -18,12 +18,20 @@ class StrategyGenerator:
     """策略变体生成器"""
 
     def __init__(self):
+        self.weights_file = Path(__file__).parent.parent / "strategy_weights.json"
         self.variant_types = [
             "parallel_high",      # 高并行度
             "granular",           # 细粒度任务分解
             "sequential",         # 顺序执行
             "hybrid"              # 混合策略
         ]
+        self.domain_keywords = {
+            "backend": ["后端", "api", "数据库", "db", "服务", "service", "鉴权", "认证", "权限"],
+            "frontend": ["前端", "ui", "页面", "组件", "vue", "react", "样式", "交互"],
+            "tests": ["测试", "test", "单测", "集成测试", "e2e", "回归"],
+            "docs": ["文档", "docs", "说明", "readme", "规范"],
+            "config": ["配置", "config", "设置", "settings", "hook", "脚本"],
+        }
 
     def generate_variants(self, base_strategy: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
@@ -222,7 +230,7 @@ class StrategyGenerator:
 
     def recommend_strategy(self, task_description: str, complexity: int = None) -> str:
         """
-        推荐最优策略
+        基于复杂度推荐策略（不含历史反馈）
 
         Args:
             task_description: 任务描述
@@ -243,6 +251,89 @@ class StrategyGenerator:
             return "hybrid"      # 复杂任务，混合策略
         else:
             return "parallel_high"  # 超复杂任务，高并行度
+
+    def _infer_task_domain(self, task_description: str) -> str:
+        """
+        根据任务描述推断主要领域。
+        """
+        text = task_description.lower()
+        scores = {k: 0 for k in self.domain_keywords}
+
+        for domain, keywords in self.domain_keywords.items():
+            for kw in keywords:
+                if kw in text:
+                    scores[domain] += 1
+
+        best_domain = max(scores, key=scores.get)
+        return best_domain if scores[best_domain] > 0 else "config"
+
+    def _load_domain_weights(self, weights_file: Path = None) -> Dict[str, float]:
+        """
+        读取领域权重（由 Stop hook 的 EMA 维护）。
+        """
+        wf = weights_file or self.weights_file
+        if not wf.exists():
+            return {}
+
+        try:
+            with open(wf, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            return {}
+
+        domain_weights: Dict[str, float] = {}
+        for key in ("backend", "frontend", "tests", "docs", "config"):
+            value = data.get(key)
+            if isinstance(value, (int, float)):
+                domain_weights[key] = float(value)
+        return domain_weights
+
+    def _upgrade_strategy(self, strategy: str) -> str:
+        order = ["sequential", "granular", "hybrid", "parallel_high"]
+        idx = order.index(strategy)
+        return order[min(idx + 1, len(order) - 1)]
+
+    def _downgrade_strategy(self, strategy: str) -> str:
+        order = ["sequential", "granular", "hybrid", "parallel_high"]
+        idx = order.index(strategy)
+        return order[max(idx - 1, 0)]
+
+    def recommend_strategy_with_feedback(
+        self,
+        task_description: str,
+        complexity: int = None,
+        weights_file: Path = None
+    ) -> Dict[str, Any]:
+        """
+        在复杂度基线推荐上叠加 EMA 历史反馈，输出最终策略。
+        """
+        if complexity is None:
+            complexity = self.analyze_task_complexity(task_description)
+
+        base_strategy = self.recommend_strategy(task_description, complexity)
+        domain = self._infer_task_domain(task_description)
+        domain_weights = self._load_domain_weights(weights_file)
+        domain_weight = domain_weights.get(domain, 5.0)
+        final_strategy = base_strategy
+        reason = "复杂度基线策略"
+
+        # 反馈偏置：高权重时更积极，低权重时更保守
+        if domain_weight >= 6.5 and complexity >= 5:
+            final_strategy = self._upgrade_strategy(base_strategy)
+            reason = f"{domain} 领域历史表现较强（{domain_weight:.2f}），策略上调一级"
+        elif domain_weight <= 4.5 and complexity <= 8:
+            final_strategy = self._downgrade_strategy(base_strategy)
+            reason = f"{domain} 领域历史表现偏弱（{domain_weight:.2f}），策略下调一级"
+
+        return {
+            "complexity": complexity,
+            "domain": domain,
+            "domain_weight": round(domain_weight, 2),
+            "base_strategy": base_strategy,
+            "final_strategy": final_strategy,
+            "reason": reason,
+            "weights_file": str((weights_file or self.weights_file)),
+        }
 
     def export_to_json(self, variants: List[Dict[str, Any]], output_path: str = None):
         """
@@ -285,18 +376,20 @@ def main():
     # 导出到文件
     generator.export_to_json(variants)
 
-    # 示例：分析任务并推荐策略
+    # 示例：分析任务并推荐策略（复杂度 + EMA 反馈）
     if len(sys.argv) > 1:
         task_description = " ".join(sys.argv[1:])
-        complexity = generator.analyze_task_complexity(task_description)
-        recommended = generator.recommend_strategy(task_description, complexity)
+        recommendation = generator.recommend_strategy_with_feedback(task_description)
 
         print(f"\n🎯 任务分析:")
         print(f"  任务描述: {task_description}")
-        print(f"  复杂度: {complexity}/10")
-        print(f"  推荐策略: {recommended}")
+        print(f"  复杂度: {recommendation['complexity']}/10")
+        print(f"  任务领域: {recommendation['domain']}")
+        print(f"  领域权重: {recommendation['domain_weight']}")
+        print(f"  基线策略: {recommendation['base_strategy']}")
+        print(f"  最终策略: {recommendation['final_strategy']}")
+        print(f"  调整原因: {recommendation['reason']}")
 
 
 if __name__ == "__main__":
     main()
-

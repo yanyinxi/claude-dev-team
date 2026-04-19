@@ -167,9 +167,9 @@ def flag_path_change(old_path: str, new_path: str, reason: str):
 ### 更新 Skill 描述
 在 Skill 的 description 或最佳实践部分添加新洞察。
 
-**Skill 进化格式**：
+**Skill 进化格式（手动维护）**：
 ```markdown
-## 📈 进化记录（自动生成）
+## 📈 进化记录（手动维护）
 
 ### 基于 [任务类型] 的学习
 
@@ -185,7 +185,7 @@ def flag_path_change(old_path: str, new_path: str, reason: str):
 ```
 
 **重要提醒**：
-- Skill 进化记录追加到文件末尾的 "📈 进化记录（自动生成）" 章节
+- Skill 进化记录追加到文件末尾的 "📈 进化记录（手动维护）" 章节
 - 不要修改 Skill 的核心工作流程，只添加经验和最佳实践
 - 使用 Edit 工具追加内容，不要覆盖现有记录
 
@@ -215,15 +215,14 @@ def flag_path_change(old_path: str, new_path: str, reason: str):
 - [最重要的一条]
 ```
 
-### 8. 验证由 Hooks 自动完成
+### 8. 验证与现状说明
 
-完成进化后，验证会由 PostToolUse Hook 自动触发：
+完成进化后，建议执行以下校验（PostToolUse Hook 只覆盖部分校验）：
 
-- ✅ 修改 project_standards.md → 自动验证
-- ✅ 修改 agent 文件 → 自动验证
-- ✅ 修改 skill 文件 → 自动验证
+- ✅ 修改 project_standards.md → PostToolUse 会触发 `verify_standards.py`
+- ⚠️ 修改 agent 文件 / skill 文件 → 仅做轻量格式检查（非完整验证）
 
-**无需手动调用验证脚本**，Hooks 系统会自动处理。
+**建议手动调用验证脚本**，不要仅依赖 Hooks。
 
 验证脚本位置：`.claude/tests/verify_standards.py`
 Hook 配置位置：`.claude/settings.json` (PostToolUse)
@@ -234,9 +233,9 @@ Hook 脚本位置：`.claude/hooks/scripts/quality-gate.sh`
 python3 .claude/tests/verify_standards.py --verbose
 ```
 
-### 7. 从 .claude/rules/ 提炼策略经验
+### 7. 从 .claude/rules/ 提炼策略经验（手动流程）
 
-Evolver 会自动读取 `.claude/rules/` 目录下的策略规则，进行元进化。
+Evolver 可按需读取 `.claude/rules/` 目录下的策略规则进行提炼；当前并非自动触发流程。
 
 #### 7.1 读取策略规则
 
@@ -332,7 +331,7 @@ def should_evolve_from_rules(agent_type: str, rules_file: str) -> bool:
 │                                                                 │
 │  任务执行 → reward_evaluator.py (计算奖励)                       │
 │      ↓                                                         │
-│  SubagentStop → strategy_learner.py (写入 .claude/rules/)       │
+│  SubagentStop → auto_evolver.py (仅记录调用事实)                 │
 │      ↓                                                         │
 │  Evolver 读取 .claude/rules/ (新增)                             │
 │      ↓                                                         │
@@ -344,9 +343,9 @@ def should_evolve_from_rules(agent_type: str, rules_file: str) -> bool:
 ```
 
 **关键点**：
-- strategy_learner 负责**实时写入**策略规则
-- Evolver 负责**定期提炼**到全局知识库
-- 两者配合，形成"实时学习 → 定期提炼"的闭环
+- 当前没有 strategy_learner 的实时写入能力
+- Evolver 的提炼动作以人工触发/显式任务为主
+- 建议流程是"真实日志采集 → 人工评审 → 文档更新"
 
 ### 8. 进化失败处理
 
@@ -386,7 +385,7 @@ def should_evolve_from_rules(agent_type: str, rules_file: str) -> bool:
 
 ---
 
-## 📈 进化记录（自动生成）
+## 📈 进化记录（历史记录）
 
 ### 2026-01-23 v2.1.0
 
@@ -425,7 +424,7 @@ def should_evolve_from_rules(agent_type: str, rules_file: str) -> bool:
 **任务类型**: 增强 Evolver 自动进化能力
 
 **新增功能**:
-- **自动更新 project_standards.md**: Evolver 现在可以自动更新项目技术标准
+- **（历史设计）自动更新 project_standards.md**: 属于当时的设计目标，非当前默认行为
 - **6 个验证函数**: 文件结构、路径变量、版本更新、禁止内容等验证
 - **进化失败处理机制**: 回滚、标记、告警三级处理
 - **明确禁止自动更新内容**: 路径配置、命名约定、API 规范需要人工审核

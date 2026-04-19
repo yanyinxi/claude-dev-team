@@ -4,7 +4,8 @@
 echo "🧪 测试 Stop Hook 配置"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-PROJECT_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+PROJECT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+export CLAUDE_PROJECT_DIR="$PROJECT_DIR"
 
 echo "📁 项目目录: $PROJECT_DIR"
 echo ""
@@ -32,16 +33,19 @@ else
 fi
 echo ""
 
-# 测试 3: 执行 Stop hook 命令
+# 测试 3: 执行 Stop hook 命令（逐个执行）
 echo "测试 3: 执行 Stop hook 命令"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-HOOK_COMMAND=$(python3 -c "import json; data=json.loads(open('$PROJECT_DIR/.claude/settings.json').read()); print(data['hooks']['Stop'][0]['hooks'][0]['command'])" 2>/dev/null)
-if eval "$HOOK_COMMAND" 2>/dev/null; then
-    echo "✅ Stop hook 命令执行成功"
-else
-    echo "❌ Stop hook 命令执行失败"
-    exit 1
-fi
+HOOK_COMMANDS=$(python3 -c "import json; data=json.loads(open('$PROJECT_DIR/.claude/settings.json').read()); print('\n'.join([h['command'] for h in data['hooks']['Stop'][0]['hooks']]))" 2>/dev/null)
+while IFS= read -r cmd; do
+    [ -z "$cmd" ] && continue
+    if echo '{"session_id":"stop-hook-test","stop_reason":"end_turn"}' | eval "$cmd" >/dev/null 2>&1; then
+        echo "✅ Stop hook 命令执行成功: $cmd"
+    else
+        echo "❌ Stop hook 命令执行失败: $cmd"
+        exit 1
+    fi
+done <<< "$HOOK_COMMANDS"
 echo ""
 
 # 测试 4: 验证不再使用 prompt 类型

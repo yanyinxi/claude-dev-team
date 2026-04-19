@@ -1,0 +1,157 @@
+{
+  "version": "1.0.0",
+  "updated_at": "2026-04-19",
+  "source_of_truth": "code",
+  "notes": "implemented 仅表示代码中可验证存在；planned/deprecated 不得在文档中写成可直接运行。",
+  "capabilities": [
+    {
+      "id": "hooks.subagent_invocation_logging",
+      "status": "implemented",
+      "description": "SubagentStop 记录 agent 调用事实到日志",
+      "evidence": {
+        "path": ".claude/hooks/scripts/auto_evolver.py",
+        "contains": [
+          "agent-invocations.jsonl",
+          "agent_invoked"
+        ]
+      }
+    },
+    {
+      "id": "hooks.session_metrics_collection",
+      "status": "implemented",
+      "description": "Stop Hook 采集真实会话指标",
+      "evidence": {
+        "path": ".claude/hooks/scripts/session_evolver.py",
+        "contains": [
+          "collect_git_metrics",
+          "sessions.jsonl",
+          "files_changed"
+        ]
+      }
+    },
+    {
+      "id": "hooks.strategy_weight_ema",
+      "status": "implemented",
+      "description": "Stop Hook 基于会话信号做 EMA 更新",
+      "evidence": {
+        "path": ".claude/hooks/scripts/strategy_updater.py",
+        "contains": [
+          "EMA_ALPHA",
+          "score_session",
+          "strategy_weights.json"
+        ]
+      }
+    },
+    {
+      "id": "strategy_generator.variants",
+      "status": "implemented",
+      "description": "策略变体生成与复杂度推荐",
+      "evidence": {
+        "path": ".claude/lib/strategy_generator.py",
+        "contains": [
+          "variant_types",
+          "recommend_strategy",
+          "strategy_variants.json"
+        ]
+      }
+    },
+    {
+      "id": "strategy_selection.ema_weight_bias",
+      "status": "implemented",
+      "description": "策略推荐读取领域 EMA 权重并做一档偏置",
+      "evidence": {
+        "path": ".claude/lib/strategy_generator.py",
+        "contains": [
+          "recommend_strategy_with_feedback",
+          "_load_domain_weights",
+          "domain_weight"
+        ]
+      }
+    },
+    {
+      "id": "parallel_executor.sandbox_simulation",
+      "status": "implemented",
+      "description": "并行策略对比沙箱（模拟执行）",
+      "evidence": {
+        "path": ".claude/lib/parallel_executor.py",
+        "contains": [
+          "_simulate_execution",
+          "execute_variants",
+          "execution_results"
+        ]
+      }
+    },
+    {
+      "id": "knowledge_graph.python_api",
+      "status": "implemented",
+      "description": "知识图谱库级 API（节点/关系/搜索/统计）",
+      "evidence": {
+        "path": ".claude/lib/knowledge_graph.py",
+        "contains": [
+          "class KnowledgeGraph",
+          "def add_node",
+          "def search_nodes",
+          "def get_statistics"
+        ]
+      }
+    },
+    {
+      "id": "knowledge_retriever.stdin_json",
+      "status": "implemented",
+      "description": "知识检索脚本 stdin JSON 输入模式",
+      "evidence": {
+        "path": ".claude/lib/knowledge_retriever.py",
+        "contains": [
+          "json.load(sys.stdin)",
+          "retrieve_relevant_knowledge",
+          "context"
+        ]
+      }
+    },
+    {
+      "id": "knowledge_graph.argparse_cli_subcommands",
+      "status": "planned",
+      "description": "knowledge_graph.py 的 add-node/search/add-edge/stats CLI",
+      "forbidden_doc_patterns": [
+        "python3 .claude/lib/knowledge_graph.py add-node",
+        "python3 .claude/lib/knowledge_graph.py search",
+        "python3 .claude/lib/knowledge_graph.py add-edge",
+        "python3 .claude/lib/knowledge_graph.py stats"
+      ]
+    },
+    {
+      "id": "knowledge_retriever.stats_flag",
+      "status": "planned",
+      "description": "knowledge_retriever.py 的 --stats 参数",
+      "forbidden_doc_patterns": [
+        "knowledge_retriever.py --stats"
+      ]
+    },
+    {
+      "id": "parallel_executor.real_subagent_execution",
+      "status": "planned",
+      "description": "parallel_executor 直连真实 subagent 执行",
+      "forbidden_doc_patterns": [
+        "parallel_executor.py 实现真正的并行执行"
+      ]
+    },
+    {
+      "id": "rules.auto_sedimentation",
+      "status": "planned",
+      "description": "训练结果自动沉淀到 .claude/rules/*.md",
+      "forbidden_doc_patterns": [
+        "最佳实践会自动写入 .claude/rules/",
+        "自动更新 .claude/rules/*.md"
+      ]
+    },
+    {
+      "id": "evolver.autonomous_docs_update",
+      "status": "planned",
+      "description": "Evolver 自动更新 standards/skills 等文档",
+      "forbidden_doc_patterns": [
+        "Evolver Agent 根据任务执行结果自动更新以下章节",
+        "由 Evolver Agent 自动更新"
+      ]
+    }
+  ]
+}
