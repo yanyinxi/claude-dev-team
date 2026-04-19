@@ -7,10 +7,10 @@
   "frontend": 5.0,
   "tests": 5.0,
   "docs": 5.0,
-  "config": 5.83,
+  "config": 5.44,
   "metadata": {
     "config": {
-      "last_updated": "2026-04-19T16:46:42.687059",
+      "last_updated": "2026-04-19T18:03:55.467843",
       "last_session_score": 4.52,
       "last_signals": {
         "productivity": "sprawling",
@@ -21,7 +21,7 @@
         "agents_unique": [],
         "commits_in_session": true
       },
-      "execution_count": 8
+      "execution_count": 9
     }
   },
   "parallel_high": 6.41,
