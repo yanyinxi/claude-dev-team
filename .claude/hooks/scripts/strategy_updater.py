@@ -30,18 +30,21 @@ INITIAL_WEIGHT = 5.0
 
 
 def read_latest_session(sessions_file: Path) -> Optional[Dict[str, Any]]:
-    """读取 sessions.jsonl 的最后一条 session_end 记录。"""
+    """读取 sessions.jsonl 的最后一条 session_end 记录。损坏的行会被跳过。"""
     if not sessions_file.exists():
         return None
     try:
         with open(sessions_file, "r", encoding="utf-8") as f:
             lines = [ln for ln in f.read().splitlines() if ln.strip()]
-        for line in reversed(lines):
+    except OSError:
+        return None
+    for line in reversed(lines):
+        try:
             record = json.loads(line)
-            if record.get("type") == "session_end":
-                return record
-    except (OSError, json.JSONDecodeError):
-        pass
+        except json.JSONDecodeError:
+            continue  # 跳过损坏行，继续向前找
+        if record.get("type") == "session_end":
+            return record
     return None
 
 
@@ -82,7 +85,12 @@ def score_session(session: Dict[str, Any]) -> float:
     return max(0.0, min(10.0, score))
 
 
-def update_weights(weights_file: Path, domain: str, session_score: float, session: Dict[str, Any]) -> Dict[str, Any]:
+def update_weights(
+    weights_file: Path,
+    domain: str,
+    session_score: float,
+    session: Dict[str, Any],
+) -> Dict[str, Any]:
     """EMA 更新策略权重，带元数据记录。"""
     if weights_file.exists():
         with open(weights_file, "r", encoding="utf-8") as f:
@@ -116,6 +124,7 @@ def update_weights(weights_file: Path, domain: str, session_score: float, sessio
 
 
 def main():
+    """Stop hook 入口：基于真实会话指标更新策略权重。"""
     # Stop hook stdin 不可靠，只做 best effort 解析
     try:
         sys.stdin.read()

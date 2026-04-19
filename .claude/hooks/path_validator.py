@@ -129,15 +129,20 @@ def validate_path(file_path: str) -> Optional[Dict[str, Any]]:
                 f"✅ 文档统一放 main/docs/，请参考 CLAUDE.md。"
             )
 
-    # 检查测试文件位置
-    if is_test_file(file_path) and not file_path.startswith("main/tests/"):
+    # 检查测试文件位置：应用测试在 main/tests/，.claude 自身测试在 .claude/tests/
+    if is_test_file(file_path) and not (
+        file_path.startswith("main/tests/") or file_path.startswith(".claude/tests/")
+    ):
         return _violation(
-            f"❌ 测试文件必须放在 main/tests/ 目录下！\n\n"
+            f"❌ 测试文件必须放在 main/tests/ 或 .claude/tests/ 目录下！\n\n"
             f"当前路径：{file_path}\n"
-            f"正确路径：main/tests/{Path(file_path).name}\n\n"
+            f"正确路径：\n"
+            f"  - 应用测试: main/tests/{Path(file_path).name}\n"
+            f"  - .claude 基础设施测试: .claude/tests/{Path(file_path).name}\n\n"
             f"  main/tests/backend/     # 后端测试\n"
             f"  main/tests/frontend/    # 前端测试\n"
-            f"  main/tests/integration/ # 集成测试"
+            f"  main/tests/integration/ # 集成测试\n"
+            f"  .claude/tests/          # .claude/ 自身的自检"
         )
 
     # 检查是否在允许的路径
