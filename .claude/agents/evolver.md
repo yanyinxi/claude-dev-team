@@ -225,13 +225,13 @@ def flag_path_change(old_path: str, new_path: str, reason: str):
 
 **无需手动调用验证脚本**，Hooks 系统会自动处理。
 
-验证脚本位置：`.claude/hooks/scripts/verify_standards.py`
+验证脚本位置：`.claude/tests/verify_standards.py`
 Hook 配置位置：`.claude/settings.json` (PostToolUse)
 Hook 脚本位置：`.claude/hooks/scripts/quality-gate.sh`
 
 如需手动验证（调试用）：
 ```bash
-python3 .claude/hooks/scripts/verify_standards.py --verbose
+python3 .claude/tests/verify_standards.py --verbose
 ```
 
 ### 7. 从 .claude/rules/ 提炼策略经验

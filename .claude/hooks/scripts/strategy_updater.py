@@ -5,11 +5,13 @@ Strategy Updater - Stop Hook Script
 """
 
 import json
-import sys
+import os
 import re
+import subprocess
+import sys
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 
 class StrategyUpdater:
@@ -65,19 +67,20 @@ class StrategyUpdater:
         else:
             weights = {}
 
-        # 更新权重（指数移动平均，alpha=0.1）
+        # 更新权重（指数移动平均，alpha=0.3）
         current_weight = weights.get(strategy_name, 5.0)
-        new_weight = current_weight * 0.9 + scores["overall_score"] * 0.1
+        new_weight = current_weight * 0.7 + scores["overall_score"] * 0.3
         weights[strategy_name] = round(new_weight, 2)
 
         # 添加元数据
         if "metadata" not in weights:
             weights["metadata"] = {}
 
+        prev_count = weights["metadata"].get(strategy_name, {}).get("execution_count", 0)
         weights["metadata"][strategy_name] = {
             "last_updated": datetime.now().isoformat(),
             "scores": scores,
-            "execution_count": weights["metadata"].get(strategy_name, {}).get("execution_count", 0) + 1
+            "execution_count": prev_count + 1
         }
 
         # 保存
@@ -158,26 +161,43 @@ class StrategyUpdater:
             f.write(content)
 
 
-def main():
-    """主函数：处理 Stop Hook 输入"""
+def infer_strategy_from_git(project_root: Path) -> str:
+    """从 git status 推断本次会话主要涉及的策略领域，减少 return 分支"""
     try:
-        input_data = json.load(sys.stdin)
-    except (json.JSONDecodeError, IOError) as e:
-        print(f"Error reading input: {e}", file=sys.stderr)
-        sys.exit(0)
+        result = subprocess.run(
+            ["git", "status", "--short"],
+            cwd=str(project_root), capture_output=True, text=True, timeout=5, check=False
+        )
+        modified = result.stdout.lower()
+    except (OSError, subprocess.TimeoutExpired):
+        return "general"
 
-    # 提取会话数据
-    session_data = input_data.get("session_data", {})
-    strategy_name = session_data.get("strategy", "general")
+    strategy_map = [
+        (["backend", ".py"],              "backend"),
+        (["frontend", ".vue", ".ts"],     "frontend"),
+        (["test"],                        "testing"),
+        ([".claude/agents"],              "collaboration"),
+    ]
+    for keywords, strategy in strategy_map:
+        if any(k in modified for k in keywords):
+            return strategy
+    return "general"
 
-    # 获取项目根目录
-    project_root = Path.cwd()
 
-    # 创建策略更新器
+def main():
+    """主函数：Stop Hook 入口。stdin 数据不可靠，从 git 获取真实信息。"""
+    # 读取 stdin（可能为空，不报错）
+    try:
+        raw = sys.stdin.read().strip()
+        _ = json.loads(raw) if raw else {}
+    except (json.JSONDecodeError, OSError):
+        pass
+
+    project_root = Path(os.environ.get("CLAUDE_PROJECT_DIR", str(Path.cwd())))
+    strategy_name = infer_strategy_from_git(project_root)
+
     updater = StrategyUpdater(project_root)
-
-    # 分析策略有效性
-    scores = updater.analyze_strategy_effectiveness(session_data)
+    scores = updater.analyze_strategy_effectiveness({})
 
     # 更新策略权重
     updater.update_strategy_weights(strategy_name, scores)

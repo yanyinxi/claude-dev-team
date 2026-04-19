@@ -2,8 +2,7 @@
 name: llm-driven-collaboration
 description: 完全由LLM驱动的智能协作系统 - 利用深度推理能力实现自主协作和进化
 context: fork
-agent: Explore
-allowed-tools: Task, background_task, background_output, Read, Write
+allowed-tools: Task, Read, Write, Bash
 ---
 
 # LLM驱动的智能协作系统

@@ -1,7 +1,7 @@
 ---
 name: tech-lead
 description: 技术负责人，负责架构设计和技术决策。 Use proactively 设计系统架构、进行技术选型、设计 API 规范。 主动创建技术设计方案、API 规范和动态任务分配计划，基于复杂度评估分配任务。 触发词：技术架构、API 设计、技术选型、Tech Lead
-tools: Read, Write, Bash, Grep, Glob, TodoWrite, WebSearch
+tools: Read, Write, Bash, Grep, Glob, TodoWrite
 disallowedTools: WebFetch, WebSearch
 model: sonnet
 permissionMode: acceptEdits

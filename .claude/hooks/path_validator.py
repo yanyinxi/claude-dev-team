@@ -45,7 +45,7 @@ ALLOWED_PATHS = [
     r"^main/frontend/",
     r"^main/tests/",      # 唯一允许的测试目录
     r"^main/docs/",
-    r"^examples/",
+    r"^main/examples/",
     r"^\.claude/",        # .claude/ and all subdirectories
     r"^\.github/",
     r"^README\.md$",
@@ -80,81 +80,80 @@ def is_test_file(file_path: str) -> bool:
     return any(re.search(pattern, file_path) for pattern in TEST_FILE_PATTERNS)
 
 
-def validate_path(file_path: str, tool_name: str) -> Optional[Dict[str, Any]]:
-    """
-    验证文件路径是否合法。
+def _violation(reason: str) -> Dict[str, Any]:
+    return {"reason": reason}
 
-    Args:
-        file_path: 文件路径
-        tool_name: 工具名称（Write, Edit）
 
-    Returns:
-        如果路径非法，返回错误信息；否则返回 None
+def validate_path(file_path: str) -> Optional[Dict[str, Any]]:
     """
-    # 检查是否在禁止的根目录路径
+    验证文件路径是否合法。返回 None 表示合法，返回 dict 表示违规原因。
+    """
+    # 防止路径穿越攻击（../）
+    if ".." in Path(file_path).parts:
+        return _violation(f"❌ 检测到路径穿越：{file_path}\n\n请使用相对于项目根目录的规范路径。")
+
+    # 防止符号链接绕过
+    project_root = Path(os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())).resolve()
+    abs_path = project_root / file_path
+    if abs_path.exists() and abs_path.is_symlink():
+        resolved = abs_path.resolve()
+        try:
+            resolved.relative_to(project_root)
+        except ValueError:
+            return _violation(f"❌ 符号链接指向项目外部：{file_path} → {resolved}\n\n禁止操作项目目录外的文件。")
+
+    # 检查禁止的根目录路径
     for pattern in FORBIDDEN_ROOT_PATHS:
         if re.match(pattern, file_path):
-            return {
-                "decision": "block",
-                "reason": f"❌ 禁止在根目录创建 {file_path}！\n\n"
-                         f"📋 正确做法：\n"
-                         f"  - 后端代码 → main/backend/\n"
-                         f"  - 前端代码 → main/frontend/\n"
-                         f"  - 测试文件 → main/tests/\n"
-                         f"  - 文档文件 → main/docs/\n"
-                         f"  - 脚本文件 → main/backend/scripts/\n\n"
-                         f"请参考 CLAUDE.md 中的目录结构约束。"
-            }
+            return _violation(
+                f"❌ 禁止在根目录创建 {file_path}！\n\n"
+                f"📋 正确做法：\n"
+                f"  - 后端代码 → main/backend/\n"
+                f"  - 前端代码 → main/frontend/\n"
+                f"  - 测试文件 → main/tests/\n"
+                f"  - 文档文件 → main/docs/\n"
+                f"  - 脚本文件 → main/backend/scripts/\n\n"
+                f"请参考 CLAUDE.md 中的目录结构约束。"
+            )
 
-    # 检查是否在禁止的嵌套路径
+    # 检查禁止的嵌套路径
     for pattern in FORBIDDEN_NESTED_PATHS:
         if re.match(pattern, file_path):
-            return {
-                "decision": "block",
-                "reason": f"❌ 禁止创建 {file_path}！\n\n"
-                         f"🚫 错误的目录结构：\n"
-                         f"  - main/backend/main/     ❌ 错误！\n"
-                         f"  - main/backend/docs/     ❌ 错误！\n"
-                         f"  - main/frontend/main/    ❌ 错误！\n"
-                         f"  - main/frontend/docs/    ❌ 错误！\n\n"
-                         f"✅ 正确的目录结构：\n"
-                         f"  - main/docs/             ✅ 所有文档统一放这里\n"
-                         f"  - main/backend/          ✅ 后端代码\n"
-                         f"  - main/frontend/         ✅ 前端代码\n\n"
-                         f"请参考 CLAUDE.md 中的目录结构约束。"
-            }
+            return _violation(
+                f"❌ 禁止创建 {file_path}！\n\n"
+                f"🚫 错误的目录结构：\n"
+                f"  - main/backend/main/     ❌\n"
+                f"  - main/backend/docs/     ❌\n"
+                f"  - main/frontend/main/    ❌\n"
+                f"  - main/frontend/docs/    ❌\n\n"
+                f"✅ 文档统一放 main/docs/，请参考 CLAUDE.md。"
+            )
 
-    # 检查测试文件是否在正确位置
-    if is_test_file(file_path):
-        if not file_path.startswith("main/tests/"):
-            return {
-                "decision": "block",
-                "reason": f"❌ 测试文件必须放在 main/tests/ 目录下！\n\n"
-                         f"当前路径：{file_path}\n"
-                         f"正确路径：main/tests/{Path(file_path).name}\n\n"
-                         f"📋 测试目录结构：\n"
-                         f"  main/tests/\n"
-                         f"  ├── backend/     # 后端测试\n"
-                         f"  ├── frontend/    # 前端测试\n"
-                         f"  └── integration/ # 集成测试\n\n"
-                         f"这是强制约束，所有测试必须遵守！"
-            }
+    # 检查测试文件位置
+    if is_test_file(file_path) and not file_path.startswith("main/tests/"):
+        return _violation(
+            f"❌ 测试文件必须放在 main/tests/ 目录下！\n\n"
+            f"当前路径：{file_path}\n"
+            f"正确路径：main/tests/{Path(file_path).name}\n\n"
+            f"  main/tests/backend/     # 后端测试\n"
+            f"  main/tests/frontend/    # 前端测试\n"
+            f"  main/tests/integration/ # 集成测试"
+        )
 
     # 检查是否在允许的路径
     allowed = any(re.match(pattern, file_path) for pattern in ALLOWED_PATHS)
     if not allowed:
-        return {
-            "decision": "block",
-            "reason": f"⚠️ 警告：{file_path} 不在标准目录结构中。\n\n"
-                     f"📋 标准目录结构：\n"
-                     f"  main/backend/    # 后端代码\n"
-                     f"  main/frontend/   # 前端代码\n"
-                     f"  main/tests/      # 测试文件\n"
-                     f"  main/docs/       # 文档\n"
-                     f"  examples/        # 示例代码\n"
-                     f"  .claude/         # Claude 配置\n\n"
-                     f"如果确实需要在此位置创建文件，请先咨询用户。"
-        }
+        return _violation(
+            f"⚠️ 警告：{file_path} 不在标准目录结构中。\n\n"
+            f"📋 标准目录结构：\n"
+            f"  main/backend/    # 后端代码\n"
+            f"  main/frontend/   # 前端代码\n"
+            f"  main/tests/      # 测试文件\n"
+            f"  main/docs/       # 文档\n"
+            f"  main/examples/   # 示例代码\n"
+            f"  .claude/         # Claude 配置\n\n"
+            f"如果确实需要在此位置创建文件，请先咨询用户。"
+        )
 
     return None
 
@@ -194,17 +193,19 @@ def main():
             pass
 
     # 验证路径
-    error = validate_path(file_path, tool_name)
+    error = validate_path(file_path)
 
     if error:
-        # 路径非法，阻止操作
+        # 路径非法，阻止操作（官方 PreToolUse schema）
         output = {
-            "hookEventName": "PreToolUse",
-            "decision": error["decision"],
-            "reason": error["reason"]
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": error["reason"]
+            }
         }
         print(json.dumps(output, ensure_ascii=False))
-        sys.exit(2)  # 退出码 2 表示阻止操作
+        sys.exit(2)
 
     # 路径合法，允许操作
     sys.exit(0)

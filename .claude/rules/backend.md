@@ -153,3 +153,13 @@ paths: main/backend/**/*.py
 - **后端文档**: `main/backend/README.md`
 - **错误处理规范**: `.claude/project_standards.md` → 错误处理规范
 - **目录结构**: `.claude/project_standards.md` → 目录结构
+
+
+## 聚合经验 (基于多次执行)
+
+### 📊 聚合洞察 (基于 4 次执行)
+
+- **平均奖励**: 8.5/10
+- **策略**: backend
+- **描述**: 持续优化中
+

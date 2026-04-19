@@ -42,7 +42,6 @@
 │   ├── scripts/               # 可执行脚本
 │   │   ├── auto_evolver.py              # 自动进化脚本 (8.0KB)
 │   │   ├── context-enhancer.sh          # 上下文增强脚本
-│   │   ├── demo_knowledge_graph.py      # 知识图谱演示
 │   │   ├── knowledge_graph.py           # 知识图谱核心模块 (16KB)
 │   │   ├── knowledge_retriever.py       # 知识检索模块 (7.4KB)
 │   │   ├── parallel_executor.py         # 并行执行器 (13KB)
@@ -53,12 +52,7 @@
 │   │   ├── setup_env.sh                 # 环境设置脚本
 │   │   ├── strategy_generator.py        # 策略生成器 (9.4KB)
 │   │   ├── strategy_updater.py          # 策略更新器 (5.8KB)
-│   │   ├── test-all-hooks.sh            # 测试所有 Hooks
-│   │   ├── test-alphazero.sh            # 测试 AlphaZero 系统
-│   │   ├── test-hooks.sh                # 测试 Hooks
-│   │   ├── test-stop-hook.sh            # 测试 Stop Hook
-│   │   ├── test_auto_feedback.sh        # 测试自动反馈系统
-│   │   └── verify_standards.py          # 验证项目标准
+│   │   └── session_evolver.py           # 会话进化记录脚本
 │   │
 │   ├── execution_results/     # 执行结果历史
 │   │   └── execution_*.json
@@ -164,13 +158,13 @@ cat .claude/settings.json
 ### 测试命令
 ```bash
 # 测试所有 Hooks
-bash .claude/hooks/scripts/test-all-hooks.sh
+bash .claude/tests/test-all-hooks.sh
 
 # 测试 AlphaZero 系统
-bash .claude/hooks/scripts/test-alphazero.sh
+bash .claude/tests/test-alphazero.sh
 
 # 验证项目标准
-python3 .claude/hooks/scripts/verify_standards.py --verbose
+python3 .claude/tests/verify_standards.py --verbose
 ```
 
 ### 配置修改

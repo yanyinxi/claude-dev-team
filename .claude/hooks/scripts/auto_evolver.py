@@ -9,7 +9,7 @@ import sys
 import re
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any
 
 
 class AutoEvolver:
@@ -62,37 +62,43 @@ class AutoEvolver:
 
     def extract_insights(self, result: Dict[str, Any], agent_name: str) -> List[str]:
         """
-        提取关键洞察
-
-        分析执行结果，提取最佳实践和改进建议
+        提取有实质价值的洞察。
+        只记录非常规情况：失败、并行执行、大量文件修改、特定文件类型。
+        避免把「成功」「快速」这类无意义的默认状态写入规则文件。
         """
         insights = []
 
-        # 成功模式
-        if result.get("success"):
-            insights.append("任务成功完成")
+        # 失败情况：值得记录以便分析
+        if not result.get("success", True):
+            insights.append("任务执行失败，需要分析原因")
 
-        # 并行执行
+        # 并行执行：有实际意义的执行模式
         if result.get("parallel_execution"):
-            insights.append("并行执行提升效率")
+            insights.append("并行执行模式验证有效")
 
-        # 快速完成
-        duration = result.get("duration", 0)
-        if duration < 60:
-            insights.append("快速响应")
+        # 大量文件修改（超过5个）：值得记录规模
+        files_modified = result.get("files_modified", [])
+        if len(files_modified) > 5:
+            insights.append(f"大规模修改：{len(files_modified)} 个文件")
 
-        # 多文件修改
-        files_modified = len(result.get("files_modified", []))
-        if files_modified > 3:
-            insights.append(f"修改了{files_modified}个文件")
+        # Agent 特定洞察：基于实际修改的文件类型
+        if agent_name == "backend-developer":
+            api_files = [f for f in files_modified if "api" in f.lower() or "route" in f.lower()]
+            if api_files:
+                insights.append(f"API 路由开发：{', '.join(api_files[:2])}")
 
-        # Agent 特定洞察
         if agent_name == "frontend-developer":
-            if any("component" in f.lower() for f in result.get("files_modified", [])):
-                insights.append("组件开发")
-        elif agent_name == "backend-developer":
-            if any("api" in f.lower() or "router" in f.lower() for f in result.get("files_modified", [])):
-                insights.append("API开发")
+            comp_files = [
+                f for f in files_modified
+                if "component" in f.lower() or ".vue" in f.lower()
+            ]
+            if comp_files:
+                insights.append(f"组件开发：{', '.join(comp_files[:2])}")
+
+        # 耗时过长（超过5分钟）：可能存在优化空间
+        duration = result.get("duration", 0)
+        if duration > 300:
+            insights.append(f"执行耗时 {duration}s，超过5分钟，建议分析瓶颈")
 
         return insights
 
@@ -104,14 +110,13 @@ class AutoEvolver:
         """
         if any(keyword in insight for keyword in ["成功", "快速", "并行", "组件", "API"]):
             return "Best_Practice"
-        elif any(keyword in insight for keyword in ["需要", "改进", "优化"]):
+        if any(keyword in insight for keyword in ["需要", "改进", "优化"]):
             return "Improvement"
-        elif any(keyword in insight for keyword in ["协作", "配合", "沟通"]):
+        if any(keyword in insight for keyword in ["协作", "配合", "沟通"]):
             return "Collaboration"
-        elif any(keyword in insight for keyword in ["效率", "提升", "加速"]):
+        if any(keyword in insight for keyword in ["效率", "提升", "加速"]):
             return "Efficiency"
-        else:
-            return "Best_Practice"
+        return "Best_Practice"
 
     def map_agent_to_strategy(self, agent_name: str) -> str:
         """
@@ -164,8 +169,15 @@ class AutoEvolver:
 """
             content = header + content
 
-        # 追加新的洞察
+        # 追加新的洞察（跳过空洞察，防止写入无意义内容）
         new_insights_section = self._format_insights(agent_name, quality_score, insights)
+        if not new_insights_section:
+            return rules_file
+
+        # 防止重复：检查同样内容是否已存在
+        for insight in insights:
+            if insight in content:
+                return rules_file
 
         # 在"新学到的洞察"章节后插入
         content = content.replace(
@@ -201,7 +213,7 @@ class AutoEvolver:
         with open(rules_file, "w", encoding="utf-8") as f:
             f.write(content)
 
-    def _format_insights(self, agent_name: str, quality_score: float, insights: List[str]) -> str:
+    def _format_insights(self, agent_name: str, _quality_score: float, insights: List[str]) -> str:
         """格式化洞察为 Markdown"""
         if not insights:
             return ""
@@ -217,43 +229,28 @@ class AutoEvolver:
 def main():
     """主函数：处理 SubagentStop Hook 输入"""
     try:
-        input_data = json.load(sys.stdin)
-    except (json.JSONDecodeError, IOError) as e:
+        raw = sys.stdin.read().strip()
+        input_data = json.loads(raw) if raw else {}
+    except (json.JSONDecodeError, OSError) as e:
         print(f"Error reading input: {e}", file=sys.stderr)
         sys.exit(0)
 
-    # 提取关键信息
+    # SubagentStop 实际可用字段：tool_input.subagent_type，其余字段不可靠
     tool_input = input_data.get("tool_input", {})
-    tool_response = input_data.get("tool_response", {})
     agent_name = tool_input.get("subagent_type", "unknown")
 
-    # 构建结果数据
-    result = {
-        "duration": tool_response.get("duration", 0),
-        "files_modified": tool_response.get("files_modified", []),
-        "success": tool_response.get("success", True),
-        "parallel_execution": tool_response.get("parallel_execution", False)
-    }
-
-    # 获取项目根目录
+    # SubagentStop hook 不提供 duration/files_modified/success 等字段
+    # 仅能从 tool_input.subagent_type 获取 agent 名称，暂无法提取有价值洞察
     project_root = Path.cwd()
-
-    # 创建进化引擎
     evolver = AutoEvolver(project_root)
+    insights = evolver.extract_insights({}, agent_name)
 
-    # 评估质量
-    quality_score = evolver.evaluate_quality(result)
-
-    # 提取洞察
-    insights = evolver.extract_insights(result, agent_name)
-
-    # 更新 Rules 文件
     if insights:
-        rules_file = evolver.update_rules_file(agent_name, quality_score, insights)
-        print(f"✅ Auto-evolution completed: {agent_name} scored {quality_score:.1f}/10")
+        rules_file = evolver.update_rules_file(agent_name, 0.0, insights)
+        print(f"✅ Auto-evolution completed: {agent_name}")
         print(f"📝 Updated: {rules_file}")
     else:
-        print(f"ℹ️  No significant insights extracted for {agent_name}")
+        print(f"ℹ️  No significant insights for {agent_name}")
 
     sys.exit(0)
 

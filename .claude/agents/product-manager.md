@@ -1,7 +1,7 @@
 ---
 name: product-manager
 description: 产品经理，负责需求分析和产品规划。 Use proactively 分析用户需求、生成 PRD 文档、拆分任务并评估优先级。 主动创建详细的产品需求、用户故事和开发任务，包含清晰的验收标准。 触发词：需求分析、PRD、产品需求
-tools: Read, Write, Bash, Grep, Glob, TodoWrite, WebSearch
+tools: Read, Write, Bash, Grep, Glob, TodoWrite
 disallowedTools: WebFetch, WebSearch
 model: sonnet
 permissionMode: default

@@ -41,19 +41,19 @@ class Settings(BaseSettings):
         db_path = self.get_project_root() / "main" / "backend" / "db" / "ket_exam.db"
         return f"sqlite+aiosqlite:///{db_path}"
 
-    # JWT配置
-    SECRET_KEY: str = "your-secret-key-change-in-production"
+    # JWT配置 - SECRET_KEY 必须通过环境变量或 .env 文件设置
+    SECRET_KEY: str = "change-me-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_HOURS: int = 24
 
-    # 管理员账号
+    # 管理员账号 - ADMIN_PASSWORD 必须通过环境变量或 .env 文件设置
     ADMIN_USERNAME: str = "admin"
-    ADMIN_PASSWORD: str = "admin123"
+    ADMIN_PASSWORD: str = "change-me-in-production"
 
     # 应用配置
     APP_NAME: str = "KET备考系统"
     APP_VERSION: str = "1.0.0"
-    DEBUG: bool = True
+    DEBUG: bool = False
 
     class Config:
         env_file = ".env"

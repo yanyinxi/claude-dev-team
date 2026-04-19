@@ -10,11 +10,11 @@
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
     "lint": "eslint . --ext .vue,.ts",
-    "format": "prettier --write \"src/**/*.{vue,ts,css}\""
+    "format": "prettier --write \"**/*.{vue,ts,css}\" --ignore-path .gitignore"
   },
   "dependencies": {
     "axios": "^1.6.0",
-    "echarts": "^6.0.0",
+    "echarts": "^5.4.0",
     "pinia": "^2.1.0",
     "vue": "^3.4.0",
     "vue-router": "^4.2.0"

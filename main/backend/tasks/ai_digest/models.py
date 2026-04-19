@@ -13,9 +13,7 @@ AI 日报数据库模型
 
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime, Date, Index
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from models.db import Base
 
 
 class AiDigest(Base):
