@@ -1,37 +1,29 @@
 {
-  "_comment": "策略权重配置文件。更新机制：指数移动平均 (EMA, alpha=0.3)，公式：新权重 = 0.3 × 本次得分 + 0.7 × 历史权重",
-  "frontend": 7.5,
-  "backend": 8.13,
-  "collaboration": 8.0,
-  "requirement-analysis": 7.0,
-  "architecture-design": 7.5,
-  "testing": 7.0,
-  "code-quality": 7.5,
-  "evolution": 8.0,
-  "general": 8.08,
+  "_comment": "策略权重配置。EMA 更新公式：新权重 = 0.7 * 旧权重 + 0.3 * 本次会话得分。数据来源为 .claude/logs/sessions.jsonl 中的真实 git 指标。",
+  "_schema_version": "2.0",
+  "_reset_at": "2026-04-19",
+  "_reset_reason": "从虚构数据重置；从此处起所有统计基于真实会话指标累积",
+  "backend": 5.0,
+  "frontend": 5.0,
+  "tests": 5.0,
+  "docs": 5.0,
+  "config": 4.79,
   "metadata": {
-    "created_at": "2026-01-24T00:00:00",
-    "description": "策略权重配置文件 - 基于执行结果自动更新",
-    "version": "1.0.0",
-    "backend": {
-      "last_updated": "2026-04-19T10:06:26.587730",
-      "scores": {
-        "overall_score": 8.5,
-        "collaboration_quality": 8.0,
-        "efficiency": 7.0,
-        "innovation": 7.5
+    "config": {
+      "last_updated": "2026-04-19T13:24:31.335474",
+      "last_session_score": 4.3,
+      "last_signals": {
+        "productivity": "sprawling",
+        "has_tests": false,
+        "test_ratio": 0.0,
+        "volume_lines": 1178,
+        "agents_used_count": 1,
+        "agents_unique": [
+          "backend-developer"
+        ],
+        "commits_in_session": true
       },
-      "execution_count": 7
-    },
-    "general": {
-      "last_updated": "2026-04-19T09:21:12.959718",
-      "scores": {
-        "overall_score": 8.5,
-        "collaboration_quality": 8.0,
-        "efficiency": 7.0,
-        "innovation": 7.5
-      },
-      "execution_count": 12
+      "execution_count": 1
     }
   }
 }

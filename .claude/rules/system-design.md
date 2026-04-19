@@ -161,10 +161,10 @@ def format_error_message(path: str, rule: str) -> str:
 
 ---
 
-## 聚合经验 (基于多次执行)
+## 真实执行数据
 
-### 📊 聚合洞察 (基于 1 次执行)
+此规则文件的统计数据不再手工编造。真实执行指标由以下机制累积：
 
-- **平均奖励**: 9.5/10
-- **策略**: system-design
-- **描述**: 三层防护体系（文档教育 + 自动执行 + 快速参考）是规则管理的最佳实践
+- 每次会话结束时，`session_evolver.py` 采集 git diff / agent 调用等真实数据到 `.claude/logs/sessions.jsonl`
+- `strategy_updater.py` 基于真实指标做 EMA 更新到 `.claude/strategy_weights.json`
+- 如需查看实时统计：`python3 .claude/lib/knowledge_retriever.py --stats`

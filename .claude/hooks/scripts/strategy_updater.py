@@ -1,217 +1,149 @@
 #!/usr/bin/env python3
 """
-Strategy Updater - Stop Hook Script
-策略更新器：在会话结束时分析整体策略有效性并更新权重
+Strategy Updater - Stop Hook
+
+基于 sessions.jsonl 中的真实会话数据更新策略权重。
+这不是拍脑袋打分，而是读取本次会话的真实指标后做 EMA 更新。
+
+评分规则（基于可验证的事实）：
+- 有实质产出（files > 0）：+基础分
+- 有测试文件（test_ratio > 0）：+质量分
+- 变更聚焦（files <= 5）或有节制（files <= 15）：+加分
+- 变更失控（files > 20）或 lines > 1000：-扣分
+- 使用了多个 agent 协作：+协作加分
+
+每次会话结束后：
+1. 读 sessions.jsonl 最后一条记录
+2. 基于 signals 计算 session_score
+3. 对 primary_domain 做 EMA 更新：new = 0.7 * old + 0.3 * session_score
 """
 
 import json
 import os
-import re
-import subprocess
 import sys
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+
+EMA_ALPHA = 0.3  # 新数据权重
+INITIAL_WEIGHT = 5.0
 
 
-class StrategyUpdater:
-    """策略更新器"""
-
-    def __init__(self, project_root: Path):
-        self.project_root = project_root
-        self.weights_file = project_root / ".claude" / "strategy_weights.json"
-        self.rules_dir = project_root / ".claude" / "rules"
-
-    def analyze_strategy_effectiveness(self, session_data: Dict[str, Any]) -> Dict[str, float]:
-        """
-        分析策略有效性
-
-        基于会话数据评估：
-        - 整体完成质量
-        - 协作效率
-        - 执行速度
-        - 创新程度
-        """
-        scores = {
-            "overall_score": 7.5,
-            "collaboration_quality": 8.0,
-            "efficiency": 7.0,
-            "innovation": 7.5
-        }
-
-        # 从会话数据中提取指标
-        # 这里可以根据实际的会话数据结构进行调整
-        if session_data.get("success", True):
-            scores["overall_score"] += 1.0
-
-        if session_data.get("parallel_execution", False):
-            scores["efficiency"] += 1.0
-            scores["collaboration_quality"] += 0.5
-
-        # 归一化到 0-10 范围
-        for key in scores:
-            scores[key] = min(10.0, max(0.0, scores[key]))
-
-        return scores
-
-    def update_strategy_weights(self, strategy_name: str, scores: Dict[str, float]):
-        """
-        更新策略权重
-
-        使用指数移动平均（EMA）更新权重
-        """
-        # 读取现有权重
-        if self.weights_file.exists():
-            with open(self.weights_file, "r", encoding="utf-8") as f:
-                weights = json.load(f)
-        else:
-            weights = {}
-
-        # 更新权重（指数移动平均，alpha=0.3）
-        current_weight = weights.get(strategy_name, 5.0)
-        new_weight = current_weight * 0.7 + scores["overall_score"] * 0.3
-        weights[strategy_name] = round(new_weight, 2)
-
-        # 添加元数据
-        if "metadata" not in weights:
-            weights["metadata"] = {}
-
-        prev_count = weights["metadata"].get(strategy_name, {}).get("execution_count", 0)
-        weights["metadata"][strategy_name] = {
-            "last_updated": datetime.now().isoformat(),
-            "scores": scores,
-            "execution_count": prev_count + 1
-        }
-
-        # 保存
-        with open(self.weights_file, "w", encoding="utf-8") as f:
-            json.dump(weights, f, indent=2, ensure_ascii=False)
-
-    def generate_evolution_report(self, strategy_name: str, scores: Dict[str, float]) -> str:
-        """生成进化报告"""
-        report = f"""
-📊 策略进化报告
-================
-
-策略名称: {strategy_name}
-评估时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-评分详情:
-- 整体质量: {scores['overall_score']:.1f}/10
-- 协作质量: {scores['collaboration_quality']:.1f}/10
-- 执行效率: {scores['efficiency']:.1f}/10
-- 创新程度: {scores['innovation']:.1f}/10
-
-平均分数: {sum(scores.values()) / len(scores):.1f}/10
-"""
-        return report
-
-    def update_aggregated_insights(self, strategy_name: str, scores: Dict[str, float]):
-        """
-        更新聚合洞察
-
-        在对应的 Rules 文件中更新聚合经验章节
-        """
-        rules_file = self.rules_dir / f"{strategy_name}.md"
-
-        if not rules_file.exists():
-            return
-
-        # 读取现有内容
-        with open(rules_file, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        # 查找聚合经验章节
-        if "## 聚合经验 (基于多次执行)" not in content:
-            # 添加章节
-            content += "\n\n## 聚合经验 (基于多次执行)\n\n"
-
-        # 提取现有的执行次数
-        match = re.search(r"基于 (\d+) 次执行", content)
-        execution_count = int(match.group(1)) + 1 if match else 1
-
-        # 计算平均奖励
-        avg_reward = scores["overall_score"]
-
-        # 更新聚合洞察
-        aggregated_section = f"""### 📊 聚合洞察 (基于 {execution_count} 次执行)
-
-- **平均奖励**: {avg_reward:.1f}/10
-- **策略**: {strategy_name}
-- **描述**: 持续优化中
-
-"""
-
-        # 替换或添加聚合洞察
-        if "### 📊 聚合洞察" in content:
-            content = re.sub(
-                r"### 📊 聚合洞察.*?(?=\n##|\Z)",
-                aggregated_section,
-                content,
-                flags=re.DOTALL
-            )
-        else:
-            content = content.replace(
-                "## 聚合经验 (基于多次执行)\n",
-                f"## 聚合经验 (基于多次执行)\n\n{aggregated_section}"
-            )
-
-        # 保存
-        with open(rules_file, "w", encoding="utf-8") as f:
-            f.write(content)
-
-
-def infer_strategy_from_git(project_root: Path) -> str:
-    """从 git status 推断本次会话主要涉及的策略领域，减少 return 分支"""
+def read_latest_session(sessions_file: Path) -> Optional[Dict[str, Any]]:
+    """读取 sessions.jsonl 的最后一条 session_end 记录。"""
+    if not sessions_file.exists():
+        return None
     try:
-        result = subprocess.run(
-            ["git", "status", "--short"],
-            cwd=str(project_root), capture_output=True, text=True, timeout=5, check=False
-        )
-        modified = result.stdout.lower()
-    except (OSError, subprocess.TimeoutExpired):
-        return "general"
+        with open(sessions_file, "r", encoding="utf-8") as f:
+            lines = [ln for ln in f.read().splitlines() if ln.strip()]
+        for line in reversed(lines):
+            record = json.loads(line)
+            if record.get("type") == "session_end":
+                return record
+    except (OSError, json.JSONDecodeError):
+        pass
+    return None
 
-    strategy_map = [
-        (["backend", ".py"],              "backend"),
-        (["frontend", ".vue", ".ts"],     "frontend"),
-        (["test"],                        "testing"),
-        ([".claude/agents"],              "collaboration"),
-    ]
-    for keywords, strategy in strategy_map:
-        if any(k in modified for k in keywords):
-            return strategy
-    return "general"
+
+def score_session(session: Dict[str, Any]) -> float:
+    """
+    基于真实 signals 计算本次会话的得分（0-10）。
+    每一项都有明确的可验证依据。
+    """
+    signals = session.get("signals", {})
+    metrics = session.get("git_metrics", {})
+
+    score = 5.0  # 中性基础分
+
+    # 生产力信号
+    productivity = signals.get("productivity", "none")
+    score += {"none": -1.5, "focused": 2.0, "broad": 1.0, "sprawling": -0.5}.get(productivity, 0.0)
+
+    # 质量信号：有测试
+    if signals.get("has_tests"):
+        score += signals.get("test_ratio", 0) * 2.0
+
+    # 协作信号：多 agent
+    agents_count = signals.get("agents_used_count", 0)
+    if agents_count >= 3:
+        score += 1.0
+    elif agents_count >= 1:
+        score += 0.3
+
+    # 规模失控惩罚
+    lines_total = metrics.get("lines_added", 0) + metrics.get("lines_removed", 0)
+    if lines_total > 1000:
+        score -= 1.0
+
+    # 完成交付信号：有 commit
+    if signals.get("commits_in_session"):
+        score += 0.5
+
+    return max(0.0, min(10.0, score))
+
+
+def update_weights(weights_file: Path, domain: str, session_score: float, session: Dict[str, Any]) -> Dict[str, Any]:
+    """EMA 更新策略权重，带元数据记录。"""
+    if weights_file.exists():
+        with open(weights_file, "r", encoding="utf-8") as f:
+            weights = json.load(f)
+    else:
+        weights = {}
+
+    current = weights.get(domain, INITIAL_WEIGHT)
+    # 保留 _comment 等元字段
+    if isinstance(current, dict):
+        current = current.get("weight", INITIAL_WEIGHT)
+
+    new_weight = current * (1 - EMA_ALPHA) + session_score * EMA_ALPHA
+    weights[domain] = round(new_weight, 2)
+
+    # 元数据记录（真实可审计）
+    if "metadata" not in weights:
+        weights["metadata"] = {}
+    prev = weights["metadata"].get(domain, {})
+    weights["metadata"][domain] = {
+        "last_updated": datetime.now().isoformat(),
+        "last_session_score": round(session_score, 2),
+        "last_signals": session.get("signals", {}),
+        "execution_count": prev.get("execution_count", 0) + 1,
+    }
+
+    with open(weights_file, "w", encoding="utf-8") as f:
+        json.dump(weights, f, indent=2, ensure_ascii=False)
+
+    return weights
 
 
 def main():
-    """主函数：Stop Hook 入口。stdin 数据不可靠，从 git 获取真实信息。"""
-    # 读取 stdin（可能为空，不报错）
+    # Stop hook stdin 不可靠，只做 best effort 解析
     try:
-        raw = sys.stdin.read().strip()
-        _ = json.loads(raw) if raw else {}
-    except (json.JSONDecodeError, OSError):
+        sys.stdin.read()
+    except OSError:
         pass
 
-    project_root = Path(os.environ.get("CLAUDE_PROJECT_DIR", str(Path.cwd())))
-    strategy_name = infer_strategy_from_git(project_root)
+    project_root = Path(os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd()))
+    sessions_file = project_root / ".claude" / "logs" / "sessions.jsonl"
+    weights_file = project_root / ".claude" / "strategy_weights.json"
 
-    updater = StrategyUpdater(project_root)
-    scores = updater.analyze_strategy_effectiveness({})
+    session = read_latest_session(sessions_file)
+    if not session:
+        print("ℹ️  无 session 记录可用于策略更新", file=sys.stderr)
+        return
 
-    # 更新策略权重
-    updater.update_strategy_weights(strategy_name, scores)
+    domain = session.get("primary_domain", "general")
+    if domain == "idle":
+        print("ℹ️  本次会话无实质变更，跳过策略更新", file=sys.stderr)
+        return
 
-    # 更新聚合洞察
-    updater.update_aggregated_insights(strategy_name, scores)
+    session_score = score_session(session)
+    update_weights(weights_file, domain, session_score, session)
 
-    # 生成报告
-    report = updater.generate_evolution_report(strategy_name, scores)
-    print(report)
-
-    print(f"✅ Strategy updated: {strategy_name} - overall score {scores['overall_score']:.1f}/10")
-
-    sys.exit(0)
+    print(
+        f"📈 策略已更新 [{domain}]: score={session_score:.2f}, "
+        f"signals={session.get('signals', {}).get('productivity')}",
+        file=sys.stderr
+    )
 
 
 if __name__ == "__main__":

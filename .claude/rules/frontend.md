@@ -16,7 +16,6 @@ paths: main/frontend/**/*.{vue,ts,js}
 ### ✅ 组件拆分策略
 - **描述**: 按职责拆分组件，保持单一职责原则
 - **证据**: 基于实际开发经验，需要持续改进
-- **成功率**: 80%
 - **适用场景**: 所有 Vue 组件开发
 - **拆分原则**:
   1. **通用组件** (`components/common/`) - 可复用的 UI 组件（Button, Card, Modal）
@@ -27,7 +26,6 @@ paths: main/frontend/**/*.{vue,ts,js}
 ### ✅ Composition API 优先
 - **描述**: 使用 Vue 3 Composition API 编写组件，避免 Options API
 - **证据**: 项目标准要求（参考 project_standards.md）
-- **成功率**: 95%
 - **适用场景**: 所有新组件开发
 - **优势**:
   - 更好的 TypeScript 支持
@@ -51,7 +49,6 @@ paths: main/frontend/**/*.{vue,ts,js}
 ### ✅ TypeScript 类型安全
 - **描述**: 为所有 props、emits、函数添加类型定义
 - **证据**: 项目标准要求（参考 project_standards.md）
-- **成功率**: 90%
 - **适用场景**: 所有 TypeScript 文件
 - **示例**:
   ```typescript
@@ -73,7 +70,6 @@ paths: main/frontend/**/*.{vue,ts,js}
 ### ✅ Pinia 状态管理
 - **描述**: 使用 Pinia 管理跨组件状态，避免 prop drilling
 - **证据**: 项目标准要求（参考 project_standards.md）
-- **成功率**: 95%
 - **适用场景**: 跨页面/组件的全局状态
 - **何时使用 Pinia**:
   - 用户认证状态
@@ -88,7 +84,6 @@ paths: main/frontend/**/*.{vue,ts,js}
 ### ✅ 自动导入配置
 - **描述**: 使用 unplugin-auto-import 和 unplugin-vue-components 自动导入
 - **证据**: 项目标准要求（参考 project_standards.md）
-- **成功率**: 100%
 - **适用场景**: 所有 Vue 组件和 composables
 - **优势**:
   - 减少重复的 import 语句
@@ -98,7 +93,6 @@ paths: main/frontend/**/*.{vue,ts,js}
 ### ✅ 目录结构规范
 - **描述**: 严格遵守前端目录结构（components, pages, stores, services, utils）
 - **证据**: 项目标准强制约束（参考 project_standards.md）
-- **成功率**: 100%
 - **适用场景**: 所有新文件创建
 - **目录职责**:
   - `components/` - Vue 组件（通用 + 业务）
@@ -141,26 +135,6 @@ paths: main/frontend/**/*.{vue,ts,js}
 - **原因**: 提高代码复用性和可测试性
 - **影响**: 组件难以测试和复用
 
-## 聚合经验（基于实际开发）
-
-### 📊 统计数据
-- **平均奖励**: 8.0/10
-- **成功率**: 80%
-- **常见问题**:
-  1. 组件拆分不够细致（需要持续改进）
-  2. 类型定义不完整
-  3. 过度使用 Pinia
-
-### 🔄 进化历史
-- **2026-01-24**: 重构为官方标准格式，添加路径特定规则
-- **2026-01-23**: 添加组件拆分策略和最佳实践
-
-### 📈 改进方向
-1. 补充 Composables 最佳实践
-2. 添加性能优化指南（懒加载、虚拟滚动）
-3. 补充测试策略（Vitest + Playwright）
-4. 添加样式管理最佳实践（Tailwind CSS）
-
 ## 相关文档
 
 - **项目标准**: `.claude/project_standards.md`
@@ -168,3 +142,10 @@ paths: main/frontend/**/*.{vue,ts,js}
 - **目录结构**: `.claude/project_standards.md` → 目录结构
 - **命名约定**: `.claude/project_standards.md` → 命名约定
 
+## 真实执行数据
+
+此规则文件的统计数据不再手工编造。真实执行指标由以下机制累积：
+
+- 每次会话结束时，`session_evolver.py` 采集 git diff / agent 调用等真实数据到 `.claude/logs/sessions.jsonl`
+- `strategy_updater.py` 基于真实指标做 EMA 更新到 `.claude/strategy_weights.json`
+- 如需查看实时统计：`python3 .claude/lib/knowledge_retriever.py --stats`

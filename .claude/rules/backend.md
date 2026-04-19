@@ -15,9 +15,6 @@ paths: main/backend/**/*.py
 
 ### ✅ API-First 并行开发
 - **描述**: 先定义接口契约（API 路由 + Pydantic Schema），再并行开发前后端
-- **证据**: 基于 3 次任务执行验证有效
-- **成功率**: 90%
-- **平均奖励**: 8.5/10
 - **适用场景**: 中大型功能开发、前后端协作
 - **实施步骤**:
   1. 在 `main/backend/models/schema.py` 定义 Pydantic 模型
@@ -28,7 +25,6 @@ paths: main/backend/**/*.py
 ### ✅ 异步数据库操作
 - **描述**: 使用 async/await 进行所有数据库操作，避免阻塞
 - **证据**: 项目标准要求（参考 project_standards.md）
-- **成功率**: 95%
 - **适用场景**: 所有 SQLAlchemy 查询、数据库事务
 - **示例**:
   ```python
@@ -47,8 +43,6 @@ paths: main/backend/**/*.py
 
 ### ✅ 统一错误处理
 - **描述**: 使用 `AppException` 及其子类处理所有业务错误
-- **证据**: 基于 3 次任务执行，错误响应格式不统一导致前端处理困难
-- **成功率**: 85%
 - **适用场景**: 所有 API 路由、业务服务层
 - **标准异常类**:
   - `NotFoundException` (404) - 资源不存在
@@ -83,7 +77,6 @@ paths: main/backend/**/*.py
 ### ✅ 目录结构规范
 - **描述**: 严格遵守 6 层目录结构（api, models, services, core, utils, scripts）
 - **证据**: 项目标准强制约束（参考 project_standards.md）
-- **成功率**: 100%
 - **适用场景**: 所有新文件创建
 - **目录职责**:
   - `api/routes/` - FastAPI 路由定义、请求处理
@@ -126,27 +119,6 @@ paths: main/backend/**/*.py
   )
   ```
 
-## 聚合经验（基于 3 次执行）
-
-### 📊 统计数据
-- **平均奖励**: 8.5/10
-- **成功率**: 85%
-- **常见问题**:
-  1. 数据库连接池配置需要优化（出现 2 次）
-  2. 错误响应格式不统一（出现 2 次）
-  3. 业务逻辑写在路由层（出现 1 次）
-
-### 🔄 进化历史
-- **2026-01-24**: 重构为官方标准格式，添加路径特定规则，合并 strategy_learner 更新
-- **2026-01-23**: 添加统一错误处理规范
-- **2026-01-22**: 添加 API 契约优先原则
-
-### 📈 改进方向
-1. 补充数据库连接池最佳实践
-2. 添加缓存策略（Redis + FastAPI Cache2）
-3. 补充异步任务处理（Celery）
-4. 添加 LangChain + Qdrant 集成示例
-
 ## 相关文档
 
 - **项目标准**: `.claude/project_standards.md`
@@ -154,12 +126,10 @@ paths: main/backend/**/*.py
 - **错误处理规范**: `.claude/project_standards.md` → 错误处理规范
 - **目录结构**: `.claude/project_standards.md` → 目录结构
 
+## 真实执行数据
 
-## 聚合经验 (基于多次执行)
+此规则文件的统计数据不再手工编造。真实执行指标由以下机制累积：
 
-### 📊 聚合洞察 (基于 4 次执行)
-
-- **平均奖励**: 8.5/10
-- **策略**: backend
-- **描述**: 持续优化中
-
+- 每次会话结束时，`session_evolver.py` 采集 git diff / agent 调用等真实数据到 `.claude/logs/sessions.jsonl`
+- `strategy_updater.py` 基于真实指标做 EMA 更新到 `.claude/strategy_weights.json`
+- 如需查看实时统计：`python3 .claude/lib/knowledge_retriever.py --stats`

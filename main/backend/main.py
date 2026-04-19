@@ -8,15 +8,15 @@ from contextlib import asynccontextmanager
 
 from core.config import settings
 from core.database import init_db
+from utils.middleware import RequestLoggingMiddleware, configure_logging
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """应用生命周期管理"""
-    # 启动时初始化数据库
+    configure_logging("DEBUG" if settings.DEBUG else "INFO")
     await init_db()
     yield
-    # 关闭时清理资源
 
 
 # 创建FastAPI应用
@@ -26,6 +26,9 @@ app = FastAPI(
     description="专为小学生设计的KET考试备考系统",
     lifespan=lifespan,
 )
+
+# 请求日志中间件（必须在 CORS 之前注册以便记录 preflight）
+app.add_middleware(RequestLoggingMiddleware)
 
 # 配置CORS
 app.add_middleware(
