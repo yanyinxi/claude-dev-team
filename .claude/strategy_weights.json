@@ -7,21 +7,21 @@
   "frontend": 5.0,
   "tests": 5.0,
   "docs": 5.0,
-  "config": 5.44,
+  "config": 6.62,
   "metadata": {
     "config": {
-      "last_updated": "2026-04-19T18:03:55.467843",
-      "last_session_score": 4.52,
+      "last_updated": "2026-04-22T16:19:22.595422",
+      "last_session_score": 6.5,
       "last_signals": {
-        "productivity": "sprawling",
-        "has_tests": true,
-        "test_ratio": 0.26,
-        "volume_lines": 1902,
+        "productivity": "broad",
+        "has_tests": false,
+        "test_ratio": 0.0,
+        "volume_lines": 233,
         "agents_used_count": 0,
         "agents_unique": [],
         "commits_in_session": true
       },
-      "execution_count": 9
+      "execution_count": 38
     }
   },
   "parallel_high": 6.41,

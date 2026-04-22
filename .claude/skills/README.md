@@ -12,6 +12,8 @@
 | testing | 测试用例设计和执行 | test | ✅ |
 | code-quality | 代码质量审查 | code-reviewer | ✅ |
 | task-distribution | 任务分配和工作量估算 | orchestrator | ✅ |
+| **ship** | **生产发布前置检查和分级发布流程** | orchestrator | ✅ |
+| **debugging** | **系统性 Bug 根因调试** | backend-developer | ✅ |
 
 ## 技能标准格式
 

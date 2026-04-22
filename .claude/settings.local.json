@@ -25,7 +25,8 @@
       "WebFetch(domain:github.com)",
       "WebSearch",
       "WebFetch(domain:docs.anthropic.com)",
-      "WebFetch(domain:code.claude.com)"
+      "WebFetch(domain:code.claude.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   },
   "disabledMcpjsonServers": [
